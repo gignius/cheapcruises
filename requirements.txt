@@ -32,3 +32,15 @@ email-validator==2.2.0
 
 # Production
 gunicorn==21.2.0  # Optional: for production with multiple workers
+
+# Security & Monitoring
+slowapi==0.1.9  # Rate limiting
+redis==5.0.1  # Caching and rate limit storage
+loguru==0.7.2  # Better logging
+sentry-sdk[fastapi]==1.39.2  # Error tracking
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.2  # For testing FastAPI
+faker==20.1.0  # For test data generation

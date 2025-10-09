@@ -38,7 +38,22 @@ class Settings(BaseSettings):
     recipient_email: Optional[str] = None
     
     # Security
-    secret_key: str = "change-this-in-production-use-openssl-rand-hex-32"
+    secret_key: Optional[str] = None
+    
+    rate_limit_enabled: bool = True
+    rate_limit_per_minute: int = 60
+    
+    redis_url: str = "redis://localhost:6379/0"
+    redis_enabled: bool = False
+    
+    sentry_dsn: Optional[str] = None
+    sentry_enabled: bool = False
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.secret_key:
+            import secrets
+            self.secret_key = secrets.token_hex(32)
     
     # Server
     host: str = "0.0.0.0"
