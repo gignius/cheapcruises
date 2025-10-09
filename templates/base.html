@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CheapCruises.io - Find Amazing Cruise Deals{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cruise: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50" x-data="{ currency: 'AUD' }">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center">
+                        <span class="text-2xl">🚢</span>
+                        <span class="ml-2 text-xl font-bold text-cruise-600">CheapCruises.io</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="/" class="text-gray-700 hover:text-cruise-600 px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/deals" class="text-gray-700 hover:text-cruise-600 px-3 py-2 rounded-md text-sm font-medium">Browse Deals</a>
+                    <a href="/api/docs" class="text-gray-700 hover:text-cruise-600 px-3 py-2 rounded-md text-sm font-medium">API</a>
+                    
+                    <!-- Currency Dropdown (Top Right) -->
+                    <div class="relative">
+                        <select x-model="currency" class="px-3 py-1.5 border-2 border-cruise-600 rounded-lg text-sm font-semibold text-cruise-700 bg-white hover:bg-cruise-50 focus:outline-none focus:ring-2 focus:ring-cruise-500 cursor-pointer">
+                            <option value="AUD">🇦🇺 AUD $</option>
+                            <option value="USD">🇺🇸 USD $</option>
+                            <option value="EUR">🇪🇺 EUR €</option>
+                            <option value="GBP">🇬🇧 GBP £</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <p>&copy; 2025 CheapCruises.io - Find the best cruise deals in Australia</p>
+                <p class="mt-2 text-gray-400 text-sm">
+                    Data updates daily at 6:00 AM AEST
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+
+

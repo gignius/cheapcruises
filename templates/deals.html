@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Browse All Cruise Deals - CheapCruises.io{% endblock %}
+
+{% block content %}
+<div x-data="dealsPage()" x-init="loadDeals()">
+    <!-- Header -->
+    <section class="bg-gradient-to-r from-cruise-500 to-cruise-700 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <h1 class="text-4xl font-bold mb-2">Browse All Cruise Deals</h1>
+            <p class="text-xl">Filter and sort to find your perfect cruise</p>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- Max Price Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Max Price/Night</label>
+                    <select x-model="filters.maxPrice" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="">Any Price</option>
+                        <option value="75">Under $75</option>
+                        <option value="100">Under $100</option>
+                        <option value="150">Under $150</option>
+                        <option value="200">Under $200</option>
+                        <option value="300">Under $300</option>
+                    </select>
+                </div>
+
+                <!-- Cruise Line Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cruise Line</label>
+                    <select x-model="filters.cruiseLine" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="">All Cruise Lines</option>
+                        <option value="Carnival">Carnival</option>
+                        <option value="Norwegian">Norwegian</option>
+                        <option value="Royal Caribbean">Royal Caribbean</option>
+                        <option value="Holland America">Holland America</option>
+                        <option value="Celebrity">Celebrity</option>
+                        <option value="Princess">Princess</option>
+                        <option value="MSC">MSC</option>
+                        <option value="Cunard">Cunard</option>
+                    </select>
+                </div>
+
+                <!-- Duration Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                    <select x-model="filters.duration" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="">All Durations</option>
+                        <option value="3:5">3-5 nights</option>
+                        <option value="6:10">6-10 nights</option>
+                        <option value="11:20">11-20 nights</option>
+                        <option value="21:999">21+ nights</option>
+                    </select>
+                </div>
+
+                <!-- Departure Port Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Departure Port</label>
+                    <select x-model="filters.departurePort" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="">All Ports</option>
+                        <option value="Sydney">Sydney</option>
+                        <option value="Brisbane">Brisbane</option>
+                        <option value="Melbourne">Melbourne</option>
+                        <option value="Miami">Miami</option>
+                        <option value="Fort Lauderdale">Fort Lauderdale</option>
+                    </select>
+                </div>
+
+                <!-- Sort By -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                    <select x-model="filters.sortBy" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="price_per_day:ASC">Price: Low to High</option>
+                        <option value="price_per_day:DESC">Price: High to Low</option>
+                        <option value="duration_days:ASC">Duration: Short to Long</option>
+                        <option value="duration_days:DESC">Duration: Long to Short</option>
+                        <option value="departure_date:ASC">Date: Earliest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between">
+                <p class="text-sm text-gray-600">
+                    Showing <span x-text="deals.length"></span> deals
+                </p>
+                <button @click="clearFilters()" class="text-sm text-cruise-600 hover:text-cruise-700 font-medium">
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deals Grid -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div x-show="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cruise-600"></div>
+            <p class="mt-4 text-gray-600">Loading deals...</p>
+        </div>
+
+        <div x-show="!loading && deals.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-cloak>
+            <template x-for="deal in deals" :key="deal.id">
+                <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden">
+                    <!-- Image -->
+                    <div class="h-48 bg-gray-200 overflow-hidden">
+                        <img x-show="deal.image_url" :src="deal.image_url" :alt="deal.destination" class="w-full h-full object-cover" x-cloak>
+                        <div x-show="!deal.image_url" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cruise-400 to-cruise-600 text-white text-5xl">
+                            🚢
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-gray-900" x-text="deal.cruise_line"></h3>
+                                <p class="text-sm text-gray-600" x-text="deal.ship_name"></p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded whitespace-nowrap ml-2">
+                                <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(deal.price_per_day))"></span>/night
+                            </span>
+                        </div>
+                        
+                        <div class="space-y-2 mb-4">
+                            <p class="text-sm">
+                                <span class="text-gray-500">📍</span>
+                                <span class="font-medium" x-text="deal.destination"></span>
+                            </p>
+                            <p class="text-sm">
+                                <span class="text-gray-500">🚢</span>
+                                <span x-text="'From ' + deal.departure_port"></span>
+                            </p>
+                            <p class="text-sm">
+                                <span class="text-gray-500">📅</span>
+                                <span x-text="deal.duration_days + ' nights'"></span>
+                            </p>
+                            <p class="text-sm" x-show="deal.departure_date">
+                                <span class="text-gray-500">🗓️</span>
+                                <span x-text="deal.departure_date ? new Date(deal.departure_date).toLocaleDateString() : ''"></span>
+                            </p>
+                        </div>
+                        
+                        <div x-show="deal.special_offers" class="mb-4 p-2 bg-yellow-50 rounded text-xs text-yellow-800" x-cloak>
+                            <span class="font-semibold">🎁 Special: </span>
+                            <span x-text="deal.special_offers"></span>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs text-gray-500">Total Price</p>
+                                    <p class="text-xl font-bold text-cruise-600">
+                                        <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(deal.total_price_aud))"></span>
+                                    </p>
+                                </div>
+                                <a :href="deal.url || '#'" target="_blank" rel="noopener noreferrer" @click="if(!deal.url) { alert('Booking link unavailable'); $event.preventDefault(); }" class="bg-cruise-600 text-white px-4 py-2 rounded-lg hover:bg-cruise-700 transition text-sm font-medium">
+                                    View Deal
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div x-show="!loading && deals.length === 0" class="text-center py-12" x-cloak>
+            <p class="text-gray-600 text-lg mb-4">No deals found matching your filters.</p>
+            <button @click="clearFilters()" class="bg-cruise-600 text-white px-6 py-2 rounded-lg hover:bg-cruise-700 transition">
+                Clear Filters
+            </button>
+        </div>
+    </section>
+</div>
+
+<script>
+    function dealsPage() {
+        return {
+            deals: [],
+            loading: true,
+            exchangeRates: {
+                'AUD': 1.0,
+                'USD': 0.65,
+                'EUR': 0.60,
+                'GBP': 0.52
+            },
+            filters: {
+                maxPrice: '',
+                cruiseLine: '',
+                departurePort: '',
+                duration: '',
+                sortBy: 'price_per_day:ASC'
+            },
+            
+            get currency() {
+                return this.$root.currency || 'AUD';
+            },
+            
+            get currencySymbol() {
+                return {'AUD': '$', 'USD': '$', 'EUR': '€', 'GBP': '£'}[this.currency] || '$';
+            },
+            
+            convertPrice(audPrice) {
+                return audPrice * this.exchangeRates[this.currency];
+            },
+
+            async loadDeals() {
+                try {
+                    this.loading = true;
+                    
+                    const params = new URLSearchParams();
+                    if (this.filters.maxPrice) params.append('max_price_per_day', this.filters.maxPrice);
+                    if (this.filters.cruiseLine) params.append('cruise_line', this.filters.cruiseLine);
+                    if (this.filters.departurePort) params.append('departure_port', this.filters.departurePort);
+                    
+                    // Duration filter
+                    if (this.filters.duration) {
+                        const [min, max] = this.filters.duration.split(':');
+                        params.append('min_duration', min);
+                        params.append('max_duration', max);
+                    }
+                    
+                    const [sortBy, order] = this.filters.sortBy.split(':');
+                    params.append('sort_by', sortBy);
+                    params.append('order', order);
+                    params.append('limit', '100');
+                    
+                    const response = await fetch(`/api/deals?${params.toString()}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.deals = data.deals;
+                    }
+                } catch (error) {
+                    console.error('Error loading deals:', error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            clearFilters() {
+                this.filters = {
+                    maxPrice: '',
+                    cruiseLine: '',
+                    departurePort: '',
+                    duration: '',
+                    sortBy: 'price_per_day:ASC'
+                };
+                this.$root.currency = 'AUD';
+                this.loadDeals();
+            }
+        }
+    }
+</script>
+{% endblock %}
+
+

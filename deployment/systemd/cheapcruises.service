@@ -1,0 +1,34 @@
+[Unit]
+Description=CheapCruises.io FastAPI Application
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/cheapcruises
+Environment="PATH=/var/www/cheapcruises/venv/bin"
+EnvironmentFile=/var/www/cheapcruises/.env
+ExecStart=/var/www/cheapcruises/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4
+
+# Restart policy
+Restart=always
+RestartSec=3
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/cheapcruises
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=cheapcruises
+
+[Install]
+WantedBy=multi-user.target
+
+

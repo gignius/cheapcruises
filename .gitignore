@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Database
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+*.out
+
+# Test files
+test_*.py
+*_test.py
+debug_*.py
+*_debug.html
+*_response_*.json
+*_apis.json
+
+# Playwright
+playwright-report/
+test-results/
+
+# Deployment secrets
+deployment/*.key
+deployment/*.pem
+
+# Temporary files
+*.tmp
+*.temp
+cruisedirect_page.html
