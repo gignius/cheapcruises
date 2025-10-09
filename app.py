@@ -15,13 +15,37 @@ from scheduler import start_scheduler, stop_scheduler
 import os
 
 
-def safe_print(text):
-    """Print with Unicode error handling"""
-    try:
-        print(text)
-    except UnicodeEncodeError:
-        ascii_text = text.encode('ascii', 'ignore').decode('ascii')
-        print(ascii_text if ascii_text else "[Output contains unsupported characters]")
+class PromoCodeSubmit(BaseModel):
+    """Model for user-submitted promo code"""
+    code: str = Field(..., min_length=2, max_length=50, description="Promo code")
+    cruise_line: str = Field(..., min_length=2, max_length=100, description="Cruise line name")
+    description: str = Field(..., min_length=5, max_length=500, description="Code description")
+    discount_type: str = Field(default="percentage", description="Type of discount")
+    discount_value: Optional[float] = Field(None, ge=0, le=100, description="Discount value")
+    conditions: Optional[str] = Field(None, max_length=1000, description="Terms and conditions")
+    
+    @validator('code')
+    def code_must_be_alphanumeric(cls, v):
+        if not v.replace('-', '').replace('_', '').isalnum():
+            raise ValueError('Code must be alphanumeric (hyphens and underscores allowed)')
+        return v.upper()
+    
+    @validator('discount_type')
+    def discount_type_must_be_valid(cls, v):
+        valid_types = ['percentage', 'fixed', 'instant_savings', 'perk']
+        if v not in valid_types:
+            raise ValueError(f'Discount type must be one of: {valid_types}')
+        return v
+
+class VoteType(BaseModel):
+    """Model for promo code voting"""
+    vote_type: str = Field(..., description="Vote type: 'up' or 'down'")
+    
+    @validator('vote_type')
+    def vote_type_must_be_valid(cls, v):
+        if v not in ['up', 'down']:
+            raise ValueError("Vote type must be 'up' or 'down'")
+        return v
 
 
 # Lifespan context manager for startup/shutdown
@@ -29,17 +53,24 @@ def safe_print(text):
 async def lifespan(app: FastAPI):
     """Startup and shutdown events"""
     # Startup
-    safe_print("🚀 Starting CheapCruises.io...")
-    await init_db()
-    start_scheduler()
-    safe_print("✅ Application started successfully")
-    
+    logger.info("Starting CheapCruises.io application")
+    try:
+        await init_db()
+        start_scheduler()
+        logger.info("Application started successfully")
+    except Exception as e:
+        logger.error(f"Failed to start application: {e}")
+        raise
+
     yield
-    
+
     # Shutdown
-    safe_print("👋 Shutting down...")
-    stop_scheduler()
-    safe_print("✅ Shutdown complete")
+    logger.info("Shutting down application")
+    try:
+        stop_scheduler()
+        logger.info("Shutdown complete")
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 
 # Create FastAPI app
@@ -50,6 +81,48 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    """Handle 404 errors"""
+    if request.url.path.startswith("/api/"):
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "Endpoint not found"}
+        )
+    return templates.TemplateResponse(
+        "404.html",
+        {"request": request},
+        status_code=404
+    )
+
+@app.exception_handler(500)
+async def internal_error_handler(request: Request, exc):
+    """Handle 500 errors"""
+    logger.error(f"Internal server error: {exc}")
+    if request.url.path.startswith("/api/"):
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": "Internal server error"}
+        )
+    return templates.TemplateResponse(
+        "500.html",
+        {"request": request},
+        status_code=500
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors"""
+    logger.warning(f"Validation error: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "success": False,
+            "message": "Validation error",
+            "errors": exc.errors()
+        }
+    )
 
 # Create directories if they don't exist
 os.makedirs("static/css", exist_ok=True)
@@ -288,26 +361,23 @@ async def health_check():
 
 @app.post("/api/promo-codes/submit")
 async def submit_promo_code(
-    code: str,
-    cruise_line: str,
-    description: str,
-    discount_type: str = "percentage",
-    discount_value: Optional[float] = None,
-    conditions: Optional[str] = None,
+    promo_data: PromoCodeSubmit,
     db: AsyncSession = Depends(get_db)
 ):
-    """Submit a user promo code"""
+    """Submit a user promo code with validation"""
     try:
         from promo_codes import PromoCode, PromoCodeStatus
         
+        logger.info(f"User submitting promo code: {promo_data.code} for {promo_data.cruise_line}")
+        
         # Create promo code object
         promo = PromoCode(
-            code=code.upper(),
-            cruise_line=cruise_line,
-            description=description,
-            discount_type=discount_type,
-            discount_value=discount_value,
-            conditions=conditions,
+            code=promo_data.code,
+            cruise_line=promo_data.cruise_line,
+            description=promo_data.description,
+            discount_type=promo_data.discount_type,
+            discount_value=promo_data.discount_value,
+            conditions=promo_data.conditions,
             status=PromoCodeStatus.UNKNOWN,
             last_validated=datetime.now()
         )
@@ -320,26 +390,25 @@ async def submit_promo_code(
         db_code.downvotes = 0
         await db.commit()
         
+        logger.info(f"Promo code {promo_data.code} submitted successfully")
         return {
             "success": True,
             "message": "Promo code submitted successfully! It will be reviewed.",
-            "code": code.upper()
+            "code": promo_data.code
         }
         
     except Exception as e:
-        return {
-            "success": False,
-            "message": f"Error submitting promo code: {str(e)}"
-        }
+        logger.error(f"Error submitting promo code: {e}")
+        raise HTTPException(status_code=500, detail="Failed to submit promo code")
 
 
 @app.post("/api/promo-codes/{code_id}/vote")
 async def vote_promo_code(
     code_id: int,
-    vote_type: str,  # "up" or "down"
+    vote_data: VoteType,
     db: AsyncSession = Depends(get_db)
 ):
-    """Vote on a promo code (upvote=works, downvote=doesn't work)"""
+    """Vote on a promo code (upvote=works, downvote=doesn't work) with validation"""
     try:
         result = await db.execute(
             select(PromoCodeDB).where(PromoCodeDB.id == code_id)
@@ -347,18 +416,20 @@ async def vote_promo_code(
         promo_code = result.scalar_one_or_none()
         
         if not promo_code:
-            return {"success": False, "message": "Promo code not found"}
+            logger.warning(f"Vote attempt on non-existent promo code: {code_id}")
+            raise HTTPException(status_code=404, detail="Promo code not found")
         
-        if vote_type == "up":
+        if vote_data.vote_type == "up":
             promo_code.upvotes += 1
-        elif vote_type == "down":
+            logger.info(f"Upvote for promo code {code_id}: {promo_code.code}")
+        else:  # down
             promo_code.downvotes += 1
+            logger.info(f"Downvote for promo code {code_id}: {promo_code.code}")
             # If too many downvotes, mark as invalid
             if promo_code.downvotes > 5 and promo_code.downvotes > promo_code.upvotes * 2:
                 from promo_codes import PromoCodeStatus
                 promo_code.status = PromoCodeStatus.INVALID.value
-        else:
-            return {"success": False, "message": "Invalid vote type"}
+                logger.warning(f"Promo code {promo_code.code} marked as invalid due to downvotes")
         
         await db.commit()
         
@@ -368,8 +439,11 @@ async def vote_promo_code(
             "downvotes": promo_code.downvotes
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
-        return {"success": False, "message": str(e)}
+        logger.error(f"Error voting on promo code {code_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process vote")
 
 
 if __name__ == "__main__":

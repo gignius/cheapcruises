@@ -1,5 +1,5 @@
 """Async database connection and session management"""
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import select, func
 from db_models import Base, CruiseDealDB, PromoCodeDB
@@ -8,6 +8,7 @@ from datetime import datetime
 from models import CruiseDeal
 from promo_codes import PromoCode, PromoCodeStatus
 import json
+from loguru import logger
 
 
 # Create async engine
@@ -27,12 +28,13 @@ AsyncSessionLocal = async_sessionmaker(
 
 async def init_db():
     """Initialize database tables"""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     try:
-        print("✅ Database tables created")
-    except UnicodeEncodeError:
-        print("[OK] Database tables created")
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        raise
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -54,7 +56,7 @@ class CruiseDealRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
     
-    async def find_existing(self, deal: CruiseDeal) -> CruiseDealDB:
+    async def find_existing(self, deal: CruiseDeal) -> Optional[CruiseDealDB]:
         """Find if a similar deal already exists"""
         result = await self.session.execute(
             select(CruiseDealDB)
@@ -64,7 +66,7 @@ class CruiseDealRepository:
             .where(CruiseDealDB.departure_date == deal.departure_date)
             .where(CruiseDealDB.duration_days == deal.duration_days)
             .where(CruiseDealDB.departure_port == deal.departure_port)
-            .where(CruiseDealDB.is_active == True)
+            .where(CruiseDealDB.is_active.is_(True))
         )
         return result.scalar_one_or_none()
     
@@ -110,18 +112,18 @@ class CruiseDealRepository:
     
     async def get_all(
         self,
-        max_price_per_day: float = None,
-        cruise_line: str = None,
-        departure_port: str = None,
-        min_duration: int = None,
-        max_duration: int = None,
+        max_price_per_day: Optional[float] = None,
+        cruise_line: Optional[str] = None,
+        departure_port: Optional[str] = None,
+        min_duration: Optional[int] = None,
+        max_duration: Optional[int] = None,
         sort_by: str = "price_per_day",
         order: str = "ASC",
-        limit: int = None,
+        limit: Optional[int] = None,
         skip: int = 0
     ):
         """Get all deals with filters"""
-        query = select(CruiseDealDB).where(CruiseDealDB.is_active == True)
+        query = select(CruiseDealDB).where(CruiseDealDB.is_active.is_(True))
         
         if max_price_per_day:
             query = query.where(CruiseDealDB.price_per_day <= max_price_per_day)
@@ -162,19 +164,19 @@ class CruiseDealRepository:
         
         under_100 = await self.session.scalar(
             select(func.count()).select_from(CruiseDealDB)
-            .where(CruiseDealDB.is_active == True)
+            .where(CruiseDealDB.is_active.is_(True))
             .where(CruiseDealDB.price_per_day <= 100)
         )
         
         under_150 = await self.session.scalar(
             select(func.count()).select_from(CruiseDealDB)
-            .where(CruiseDealDB.is_active == True)
+            .where(CruiseDealDB.is_active.is_(True))
             .where(CruiseDealDB.price_per_day <= 150)
         )
         
         under_200 = await self.session.scalar(
             select(func.count()).select_from(CruiseDealDB)
-            .where(CruiseDealDB.is_active == True)
+            .where(CruiseDealDB.is_active.is_(True))
             .where(CruiseDealDB.price_per_day <= 200)
         )
         
@@ -193,7 +195,7 @@ class CruiseDealRepository:
         result = await self.session.execute(
             select(CruiseDealDB)
             .where(CruiseDealDB.last_updated < cutoff_date)
-            .where(CruiseDealDB.is_active == True)
+            .where(CruiseDealDB.is_active.is_(True))
         )
         deals = result.scalars().all()
         
@@ -253,7 +255,7 @@ class PromoCodeRepository:
         await self.session.flush()
         return db_code
     
-    async def get_all(self, cruise_line: str = None, valid_only: bool = False):
+    async def get_all(self, cruise_line: Optional[str] = None, valid_only: bool = False):
         """Get all promo codes with filters"""
         query = select(PromoCodeDB)
         

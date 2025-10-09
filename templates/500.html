@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - CheapCruises.io{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100 px-4">
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-8 md:p-12 text-center">
+        <div class="mb-8">
+            <h1 class="text-9xl font-bold text-red-600 mb-4">500</h1>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Internal Server Error</h2>
+            <p class="text-lg text-gray-600 mb-8">
+                Something went wrong on our end. Our crew is working to fix it!
+            </p>
+        </div>
+        
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+            <p class="text-sm text-gray-700">
+                <strong>What happened?</strong><br>
+                Our server encountered an unexpected error while processing your request. This has been automatically logged and our team will investigate.
+            </p>
+        </div>
+        
+        <div class="space-y-4">
+            <button onclick="window.location.reload()" class="inline-block w-full md:w-auto px-8 py-3 bg-cruise-600 text-white rounded-lg font-semibold hover:bg-cruise-700 transition-colors">
+                Try Again
+            </button>
+            <a href="/" class="inline-block w-full md:w-auto px-8 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors ml-0 md:ml-4">
+                Return to Homepage
+            </a>
+        </div>
+        
+        <div class="mt-12 pt-8 border-t border-gray-200">
+            <p class="text-sm text-gray-500">
+                Error persists? 
+                <a href="mailto:support@cheapcruises.io" class="text-cruise-600 hover:text-cruise-700 underline">Contact support</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
