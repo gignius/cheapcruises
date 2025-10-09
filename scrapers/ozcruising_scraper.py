@@ -76,7 +76,7 @@ class OzCruisingScraper(BaseScraper):
             cruise_line_pages = pages_to_scrape[10:22]  # Cruise line search pages
             for page_url in cruise_line_pages:
                 logger.debug(f"Scraping with pagination: {page_url}")
-                self._scrape_with_pagination(page_url, max_pages=100)  # Up to 100 pages per cruise line
+                self._scrape_with_pagination(page_url, max_pages=3)  # Limit to 3 pages - pagination shows same deals repeatedly
             
             # Scrape destination pages
             destination_pages = pages_to_scrape[22:]  # Last 6 are destinations
