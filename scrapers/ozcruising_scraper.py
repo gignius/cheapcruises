@@ -1,9 +1,10 @@
 """Scraper for ozcruising.com.au"""
 import re
 from datetime import datetime
-from typing import List
-from base_scraper import BaseScraper, safe_print
+from typing import List, Optional
+from base_scraper import BaseScraper
 from models import CruiseDeal
+from loguru import logger
 
 
 class OzCruisingScraper(BaseScraper):
@@ -18,7 +19,7 @@ class OzCruisingScraper(BaseScraper):
 
     def scrape(self) -> List[CruiseDeal]:
         """Scrape cruise deals from OzCruising"""
-        safe_print(f"\n🔍 Scraping {self.name}...")
+        logger.info(f"Starting scrape of {self.name}")
         self.deals = []
         
         try:
@@ -66,7 +67,7 @@ class OzCruisingScraper(BaseScraper):
             # Scrape simple pages (homepage, specials)
             simple_pages = pages_to_scrape[:10]  # First 10 are non-paginated
             for page_url in simple_pages:
-                safe_print(f"  Scraping: {page_url}")
+                logger.debug(f"Scraping: {page_url}")
                 soup = self.get_page(page_url)
                 if soup:
                     self._parse_page(soup)
@@ -74,23 +75,21 @@ class OzCruisingScraper(BaseScraper):
             # Scrape cruise line pages WITH PAGINATION (get ALL deals!)
             cruise_line_pages = pages_to_scrape[10:22]  # Cruise line search pages
             for page_url in cruise_line_pages:
-                safe_print(f"  Scraping WITH PAGINATION: {page_url}")
+                logger.debug(f"Scraping with pagination: {page_url}")
                 self._scrape_with_pagination(page_url, max_pages=100)  # Up to 100 pages per cruise line
             
             # Scrape destination pages
             destination_pages = pages_to_scrape[22:]  # Last 6 are destinations
             for page_url in destination_pages:
-                safe_print(f"  Scraping: {page_url}")
+                logger.debug(f"Scraping: {page_url}")
                 soup = self.get_page(page_url)
                 if soup:
                     self._parse_page(soup)
             
-            safe_print(f"✅ Successfully scraped {len(self.deals)} deals from {self.name}")
+            logger.success(f"Successfully scraped {len(self.deals)} deals from {self.name}")
             
         except Exception as e:
-            safe_print(f"❌ Error scraping {self.name}: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"Error scraping {self.name}: {e}", exc_info=True)
         
         return self.deals
     
@@ -106,10 +105,11 @@ class OzCruisingScraper(BaseScraper):
             else:
                 url = f"{base_url}?page={page_num}"
             
-            safe_print(f"    Page {page_num}: {url[:80]}...")
+            logger.debug(f"Page {page_num}: {url[:80]}...")
             soup = self.get_page(url)
             
             if not soup:
+                logger.warning(f"Failed to fetch page {page_num}")
                 break
             
             # Count cruise details links on this page (before deduplication)
@@ -119,7 +119,7 @@ class OzCruisingScraper(BaseScraper):
                 # No cruises at all on this page
                 consecutive_empty_pages += 1
                 if consecutive_empty_pages >= 2:
-                    # Stop after 2 empty pages
+                    logger.debug(f"Stopping pagination after {consecutive_empty_pages} empty pages")
                     break
                 page_num += 1
                 continue
@@ -129,7 +129,7 @@ class OzCruisingScraper(BaseScraper):
             self._parse_page(soup)
             deals_found = len(self.deals) - deals_before
             
-            safe_print(f"      Cruises on page: {len(cruise_links_on_page)}, New deals after dedup: {deals_found}")
+            logger.debug(f"Page {page_num}: {len(cruise_links_on_page)} cruises found, {deals_found} new deals after dedup")
             
             # Continue even if we didn't find new deals (might be duplicates, but next page might have new ones)
             consecutive_empty_pages = 0
@@ -144,8 +144,7 @@ class OzCruisingScraper(BaseScraper):
             
             if not deal_links:
                 # Try alternative: look for divs containing cruise information
-                # The deals appear to be in containers with cruise line images
-                safe_print(f"⚠️  No 'View Cruise Details' links found. Trying alternative selectors...")
+                logger.warning("No 'View Cruise Details' links found, trying alternative selectors")
                 
                 # Try to find parent containers of links
                 all_links = soup.find_all('a', href=re.compile(r'cruise', re.I))
@@ -160,10 +159,10 @@ class OzCruisingScraper(BaseScraper):
                             deal_containers.append(parent)
                 
                 if not deal_containers:
-                    safe_print(f"⚠️  No deal containers found. Website structure may have changed.")
+                    logger.warning("No deal containers found - website structure may have changed")
                     return
                     
-                safe_print(f"📦 Found {len(deal_containers)} potential deals via alternative method")
+                logger.info(f"Found {len(deal_containers)} potential deals via alternative method")
                 
                 for container in deal_containers:
                     try:
@@ -171,7 +170,7 @@ class OzCruisingScraper(BaseScraper):
                         if deal and not self._is_duplicate(deal):
                             self.deals.append(deal)
                     except Exception as e:
-                        safe_print(f"⚠️  Error parsing deal: {e}")
+                        logger.warning(f"Error parsing deal: {e}")
                         continue
             else:
                 # Each "View Cruise Details" link's parent container has the deal info
@@ -217,12 +216,12 @@ class OzCruisingScraper(BaseScraper):
                             if deal and not self._is_duplicate(deal):
                                 self.deals.append(deal)
                     except Exception as e:
-                        safe_print(f"⚠️  Error parsing deal {idx}: {e}")
+                        logger.warning(f"Error parsing deal {idx}: {e}")
                         continue
         except Exception as e:
-            safe_print(f"⚠️  Error parsing page: {e}")
+            logger.error(f"Error parsing page: {e}", exc_info=True)
 
-    def _parse_deal(self, container) -> CruiseDeal:
+    def _parse_deal(self, container) -> Optional[CruiseDeal]:
         """Parse individual deal from container"""
         try:
             # Get all text from container for easier searching
