@@ -1,12 +1,13 @@
 """Main FastAPI application"""
-from fastapi import FastAPI, Request, Depends, Query, Form
+from fastapi import FastAPI, Request, Depends, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional, List
+from typing import Optional
+from datetime import datetime
 
 from config_settings import settings
 from database_async import init_db, get_db, CruiseDealRepository, PromoCodeRepository
@@ -33,9 +34,9 @@ async def lifespan(app: FastAPI):
     await init_db()
     start_scheduler()
     safe_print("✅ Application started successfully")
-    
+
     yield
-    
+
     # Shutdown
     safe_print("👋 Shutting down...")
     stop_scheduler()
@@ -124,7 +125,7 @@ async def get_deals(
         limit=limit,
         skip=skip
     )
-    
+
     return {
         "success": True,
         "count": len(deals),
@@ -154,7 +155,7 @@ async def get_deals(
 async def get_best_deals(db: AsyncSession = Depends(get_db)):
     """Get best deals under specific price thresholds"""
     repo = CruiseDealRepository(db)
-    
+
     results = {}
     for threshold in [100, 150, 200]:
         deals = await repo.get_all(
@@ -181,7 +182,7 @@ async def get_best_deals(db: AsyncSession = Depends(get_db)):
             }
             for deal in deals
         ]
-    
+
     return {
         "success": True,
         "best_deals": results
@@ -193,11 +194,11 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
     """Get statistics about deals and codes"""
     deal_repo = CruiseDealRepository(db)
     promo_repo = PromoCodeRepository(db)
-    
+
     deal_counts = await deal_repo.count_by_price()
     promo_codes = await promo_repo.get_all()
     valid_codes = len([c for c in promo_codes if c.status == "valid"])
-    
+
     return {
         "success": True,
         "stats": {
@@ -221,7 +222,7 @@ async def get_promo_codes(
     """Get promo codes with filters"""
     repo = PromoCodeRepository(db)
     codes = await repo.get_all(cruise_line=cruise_line, valid_only=valid_only)
-    
+
     return {
         "success": True,
         "count": len(codes),
@@ -255,10 +256,10 @@ async def get_deal(deal_id: int, db: AsyncSession = Depends(get_db)):
         select(CruiseDealDB).where(CruiseDealDB.id == deal_id)
     )
     deal = result.scalar_one_or_none()
-    
+
     if not deal:
         return {"success": False, "message": "Deal not found"}
-    
+
     return {
         "success": True,
         "deal": {
@@ -299,7 +300,7 @@ async def submit_promo_code(
     """Submit a user promo code"""
     try:
         from promo_codes import PromoCode, PromoCodeStatus
-        
+
         # Create promo code object
         promo = PromoCode(
             code=code.upper(),
@@ -311,7 +312,7 @@ async def submit_promo_code(
             status=PromoCodeStatus.UNKNOWN,
             last_validated=datetime.now()
         )
-        
+
         # Save to database
         repo = PromoCodeRepository(db)
         db_code = await repo.create_or_update(promo)
@@ -319,13 +320,13 @@ async def submit_promo_code(
         db_code.upvotes = 0
         db_code.downvotes = 0
         await db.commit()
-        
+
         return {
             "success": True,
             "message": "Promo code submitted successfully! It will be reviewed.",
             "code": code.upper()
         }
-        
+
     except Exception as e:
         return {
             "success": False,
@@ -345,10 +346,10 @@ async def vote_promo_code(
             select(PromoCodeDB).where(PromoCodeDB.id == code_id)
         )
         promo_code = result.scalar_one_or_none()
-        
+
         if not promo_code:
             return {"success": False, "message": "Promo code not found"}
-        
+
         if vote_type == "up":
             promo_code.upvotes += 1
         elif vote_type == "down":
@@ -359,15 +360,15 @@ async def vote_promo_code(
                 promo_code.status = PromoCodeStatus.INVALID.value
         else:
             return {"success": False, "message": "Invalid vote type"}
-        
+
         await db.commit()
-        
+
         return {
             "success": True,
             "upvotes": promo_code.upvotes,
             "downvotes": promo_code.downvotes
         }
-        
+
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -380,5 +381,3 @@ if __name__ == "__main__":
         port=settings.port,
         reload=settings.debug
     )
-
-
