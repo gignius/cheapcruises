@@ -63,14 +63,27 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/asia-cruises",
             ]
             
-            for page_url in pages_to_scrape:
+            # Scrape simple pages (homepage, specials)
+            simple_pages = pages_to_scrape[:10]  # First 10 are non-paginated
+            for page_url in simple_pages:
                 safe_print(f"  Scraping: {page_url}")
                 soup = self.get_page(page_url)
-                if not soup:
-                    safe_print(f"❌ Failed to fetch {page_url}")
-                    continue
-                
-                self._parse_page(soup)
+                if soup:
+                    self._parse_page(soup)
+            
+            # Scrape cruise line pages WITH PAGINATION (get ALL deals!)
+            cruise_line_pages = pages_to_scrape[10:22]  # Cruise line search pages
+            for page_url in cruise_line_pages:
+                safe_print(f"  Scraping WITH PAGINATION: {page_url}")
+                self._scrape_with_pagination(page_url, max_pages=100)  # Up to 100 pages per cruise line
+            
+            # Scrape destination pages
+            destination_pages = pages_to_scrape[22:]  # Last 6 are destinations
+            for page_url in destination_pages:
+                safe_print(f"  Scraping: {page_url}")
+                soup = self.get_page(page_url)
+                if soup:
+                    self._parse_page(soup)
             
             safe_print(f"✅ Successfully scraped {len(self.deals)} deals from {self.name}")
             
@@ -80,6 +93,35 @@ class OzCruisingScraper(BaseScraper):
             traceback.print_exc()
         
         return self.deals
+    
+    def _scrape_with_pagination(self, base_url: str, max_pages: int = 100):
+        """Scrape a URL with pagination support"""
+        page_num = 1
+        
+        while page_num <= max_pages:
+            # Construct paginated URL
+            if '?' in base_url:
+                url = f"{base_url}&page={page_num}"
+            else:
+                url = f"{base_url}?page={page_num}"
+            
+            safe_print(f"    Page {page_num}: {url[:80]}...")
+            soup = self.get_page(url)
+            
+            if not soup:
+                break
+            
+            # Parse this page
+            deals_before = len(self.deals)
+            self._parse_page(soup)
+            deals_found = len(self.deals) - deals_before
+            
+            if deals_found == 0:
+                # No more deals on this page, we've reached the end
+                break
+            
+            safe_print(f"      Found {deals_found} new deals")
+            page_num += 1
     
     def _parse_page(self, soup):
         """Parse a single page for deals"""

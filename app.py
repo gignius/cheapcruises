@@ -85,6 +85,15 @@ async def promo_codes_page(request: Request):
     return templates.TemplateResponse("promo_codes.html", {"request": request})
 
 
+@app.get("/cruise/{cruise_id}", response_class=HTMLResponse)
+async def cruise_detail_page(request: Request, cruise_id: int):
+    """Individual cruise detail page"""
+    return templates.TemplateResponse("cruise_detail.html", {
+        "request": request,
+        "cruise_id": cruise_id
+    })
+
+
 # ============================================================================
 # API ROUTES (JSON)
 # ============================================================================
@@ -236,6 +245,38 @@ async def get_promo_codes(
             }
             for code in codes
         ]
+    }
+
+
+@app.get("/api/deals/{deal_id}")
+async def get_deal(deal_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a single cruise deal by ID"""
+    result = await db.execute(
+        select(CruiseDealDB).where(CruiseDealDB.id == deal_id)
+    )
+    deal = result.scalar_one_or_none()
+    
+    if not deal:
+        return {"success": False, "message": "Deal not found"}
+    
+    return {
+        "success": True,
+        "deal": {
+            "id": deal.id,
+            "cruise_line": deal.cruise_line,
+            "ship_name": deal.ship_name,
+            "destination": deal.destination,
+            "departure_date": deal.departure_date.isoformat() if deal.departure_date else None,
+            "duration_days": deal.duration_days,
+            "total_price_aud": deal.total_price_aud,
+            "price_per_day": deal.price_per_day,
+            "cabin_type": deal.cabin_type,
+            "departure_port": deal.departure_port,
+            "url": deal.url,
+            "special_offers": deal.special_offers,
+            "image_url": deal.image_url,
+            "scraped_at": deal.scraped_at.isoformat(),
+        }
     }
 
 

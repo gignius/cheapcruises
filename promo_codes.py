@@ -141,13 +141,13 @@ class PromoCodeDatabase:
                 last_validated=datetime.now()
             ),
             
-            # Carnival Codes
+            # Carnival Codes (includes P&O Australia - they merged)
             PromoCode(
-                code="EARLYBIRD",
+                code="CARNIVAL50",
                 cruise_line="Carnival",
-                description="Early Bird Savings - Up to $200 per cabin",
+                description="Early Saver - Up to $50 per person off",
                 discount_type="instant_savings",
-                discount_value=200.0,
+                discount_value=50.0,
                 valid_from=datetime(2025, 1, 1),
                 valid_until=datetime(2026, 12, 31),
                 conditions="Book early and save. Varies by sailing. New bookings only.",
@@ -156,34 +156,17 @@ class PromoCodeDatabase:
                 last_validated=datetime.now()
             ),
             
-            # Norwegian Codes (from their API, saw: FREE-OPEN-BAR, FREE-SPECIALTY-DINING, etc.)
+            # Norwegian Codes
             PromoCode(
-                code="FREE-OPEN-BAR",
+                code="NCL50",
                 cruise_line="Norwegian Cruise Line",
-                description="Free at Sea - Free Open Bar",
-                discount_type="perk",
-                conditions="Part of Norwegian's Free at Sea promotion. Varies by booking class.",
-                source_url="https://www.ncl.com/free-at-sea",
-                status=PromoCodeStatus.VALID,
-                last_validated=datetime.now()
-            ),
-            PromoCode(
-                code="FREE-SPECIALTY-DINING",
-                cruise_line="Norwegian Cruise Line",
-                description="Free at Sea - Free Specialty Dining",
-                discount_type="perk",
-                conditions="Part of Norwegian's Free at Sea promotion. Varies by booking class.",
-                source_url="https://www.ncl.com/free-at-sea",
-                status=PromoCodeStatus.VALID,
-                last_validated=datetime.now()
-            ),
-            PromoCode(
-                code="FREE-WIFI",
-                cruise_line="Norwegian Cruise Line",
-                description="Free at Sea - Free WiFi Package",
-                discount_type="perk",
-                conditions="Part of Norwegian's Free at Sea promotion. Varies by booking class.",
-                source_url="https://www.ncl.com/free-at-sea",
+                description="Early Booking Savings - Up to $50 per person off",
+                discount_type="instant_savings",
+                discount_value=50.0,
+                valid_from=datetime(2025, 1, 1),
+                valid_until=datetime(2026, 12, 31),
+                conditions="Book early for savings on select sailings",
+                source_url="https://www.ncl.com/cruise-deals",
                 status=PromoCodeStatus.VALID,
                 last_validated=datetime.now()
             ),
@@ -227,7 +210,7 @@ class PromoCodeDatabase:
                 last_validated=datetime.now()
             ),
             PromoCode(
-                code="EARLYBIRD",
+                code="PRINCESS300",
                 cruise_line="Princess Cruises",
                 description="Early Booking Bonus - Up to $300 per person",
                 discount_type="instant_savings",
@@ -264,7 +247,7 @@ class PromoCodeDatabase:
             
             # Cunard
             PromoCode(
-                code="EARLYBOOK",
+                code="CUNARD10",
                 cruise_line="Cunard",
                 description="Early Booking Savings - Up to 10% off",
                 discount_type="percentage",
@@ -315,20 +298,6 @@ class PromoCodeDatabase:
                 last_validated=datetime.now()
             ),
             
-            # P&O Australia
-            PromoCode(
-                code="EARLYBIRD",
-                cruise_line="P&O Australia",
-                description="Early Bird Sale - Up to 25% off",
-                discount_type="percentage",
-                discount_value=25.0,
-                valid_from=datetime(2025, 1, 1),
-                valid_until=datetime(2026, 12, 31),
-                conditions="Book early for Australian and Pacific sailings",
-                source_url="https://www.pocruises.com.au/cruise-deals",
-                status=PromoCodeStatus.VALID,
-                last_validated=datetime.now()
-            ),
         ])
     
     def add_code(self, promo_code: PromoCode):

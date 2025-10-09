@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cruise.ship_name }} - {{ cruise.destination }} | CheapCruises.io{% endblock %}
+
+{% block content %}
+<div x-data="cruiseDetailPage({{ cruise_id }})" x-init="loadCruise()">
+    <!-- Loading State -->
+    <div x-show="loading" class="max-w-4xl mx-auto px-4 py-12">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cruise-600"></div>
+            <p class="mt-4 text-gray-600">Loading cruise details...</p>
+        </div>
+    </div>
+
+    <!-- Cruise Detail -->
+    <div x-show="!loading && cruise" x-cloak>
+        <!-- Hero Image -->
+        <section class="relative h-96 bg-gray-900">
+            <img x-show="cruise.image_url" :src="cruise.image_url" :alt="cruise.destination" class="w-full h-full object-cover opacity-75">
+            <div x-show="!cruise.image_url" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cruise-500 to-cruise-700 text-white text-9xl">
+                🚢
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 right-0 p-8 text-white">
+                <div class="max-w-7xl mx-auto">
+                    <p class="text-lg mb-2" x-text="cruise.cruise_line"></p>
+                    <h1 class="text-4xl md:text-5xl font-bold mb-2" x-text="cruise.ship_name"></h1>
+                    <p class="text-2xl" x-text="cruise.destination"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cruise Information -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Info -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h2 class="text-2xl font-bold mb-6">Cruise Details</h2>
+                        
+                        <div class="grid grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Ship</p>
+                                <p class="text-lg font-semibold" x-text="cruise.ship_name"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Cruise Line</p>
+                                <p class="text-lg font-semibold" x-text="cruise.cruise_line"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Destination</p>
+                                <p class="text-lg font-semibold" x-text="cruise.destination"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Duration</p>
+                                <p class="text-lg font-semibold"><span x-text="cruise.duration_days"></span> days</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Departure Port</p>
+                                <p class="text-lg font-semibold" x-text="cruise.departure_port"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Departure Date</p>
+                                <p class="text-lg font-semibold" x-text="cruise.departure_date ? new Date(cruise.departure_date).toLocaleDateString() : 'See details'"></p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Cabin Type</p>
+                                <p class="text-lg font-semibold" x-text="cruise.cabin_type"></p>
+                            </div>
+                            <div x-show="cruise.special_offers">
+                                <p class="text-sm text-gray-500 mb-1">Special Offers</p>
+                                <p class="text-lg font-semibold text-green-600" x-text="cruise.special_offers"></p>
+                            </div>
+                        </div>
+
+                        <div x-show="cruise.special_offers" class="p-4 bg-yellow-50 border-l-4 border-yellow-400 mb-8">
+                            <p class="text-sm font-semibold text-yellow-800 mb-1">🎁 Special Offer</p>
+                            <p class="text-sm text-yellow-700" x-text="cruise.special_offers"></p>
+                        </div>
+
+                        <div class="border-t pt-6">
+                            <p class="text-sm text-gray-500 mb-2">Last Updated</p>
+                            <p class="text-sm" x-text="cruise.scraped_at ? new Date(cruise.scraped_at).toLocaleString() : 'Unknown'"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Card -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-lg p-8 sticky top-4">
+                        <h2 class="text-2xl font-bold mb-6">Pricing</h2>
+                        
+                        <div class="mb-6">
+                            <p class="text-sm text-gray-500 mb-2">Price Per Night</p>
+                            <p class="text-4xl font-bold text-cruise-600">
+                                <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(cruise.price_per_day))"></span>
+                            </p>
+                        </div>
+
+                        <div class="mb-8 pb-6 border-b">
+                            <p class="text-sm text-gray-500 mb-2">Total Price</p>
+                            <p class="text-3xl font-bold">
+                                <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(cruise.total_price_aud))"></span>
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">For <span x-text="cruise.duration_days"></span> days</p>
+                        </div>
+
+                        <a :href="cruise.url" target="_blank" rel="noopener noreferrer" class="block w-full bg-cruise-600 text-white text-center px-6 py-4 rounded-lg hover:bg-cruise-700 transition text-lg font-semibold mb-4">
+                            Book This Cruise →
+                        </a>
+
+                        <p class="text-xs text-center text-gray-500">
+                            You'll be redirected to the booking site
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-8">
+                <a href="/deals" class="text-cruise-600 hover:text-cruise-700 font-medium">
+                    ← Back to All Deals
+                </a>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    function cruiseDetailPage(cruiseId) {
+        return {
+            cruise: null,
+            loading: true,
+            exchangeRates: {
+                'AUD': 1.0,
+                'USD': 0.65,
+                'EUR': 0.60,
+                'GBP': 0.52
+            },
+
+            get currency() {
+                return this.$root.currency || 'AUD';
+            },
+
+            get currencySymbol() {
+                return {'AUD': '$', 'USD': '$', 'EUR': '€', 'GBP': '£'}[this.currency] || '$';
+            },
+
+            convertPrice(audPrice) {
+                return audPrice * this.exchangeRates[this.currency];
+            },
+
+            async loadCruise() {
+                try {
+                    const response = await fetch(`/api/deals/${cruiseId}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        this.cruise = data.deal;
+                    }
+                } catch (error) {
+                    console.error('Error loading cruise:', error);
+                } finally {
+                    this.loading = false;
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}
+

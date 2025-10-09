@@ -117,9 +117,14 @@
                                         <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(deal.total_price_aud))"></span>
                                     </p>
                                 </div>
-                                <a :href="deal.url" target="_blank" rel="noopener noreferrer" class="bg-cruise-600 text-white px-4 py-2 rounded-lg hover:bg-cruise-700 transition text-sm font-medium">
-                                    View Deal
-                                </a>
+                                <div class="flex gap-2">
+                                    <a :href="'/cruise/' + deal.id" class="flex-1 bg-cruise-100 text-cruise-700 px-3 py-2 rounded-lg hover:bg-cruise-200 transition text-xs font-medium text-center">
+                                        Details
+                                    </a>
+                                    <a :href="deal.url" target="_blank" rel="noopener noreferrer" class="flex-1 bg-cruise-600 text-white px-3 py-2 rounded-lg hover:bg-cruise-700 transition text-xs font-medium text-center">
+                                        Book
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
