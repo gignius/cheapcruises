@@ -97,6 +97,7 @@ class OzCruisingScraper(BaseScraper):
     def _scrape_with_pagination(self, base_url: str, max_pages: int = 100):
         """Scrape a URL with pagination support"""
         page_num = 1
+        consecutive_empty_pages = 0
         
         while page_num <= max_pages:
             # Construct paginated URL
@@ -111,16 +112,27 @@ class OzCruisingScraper(BaseScraper):
             if not soup:
                 break
             
+            # Count cruise details links on this page (before deduplication)
+            cruise_links_on_page = soup.find_all('a', string=re.compile(r'View\s+Cruise\s+Details', re.I))
+            
+            if len(cruise_links_on_page) == 0:
+                # No cruises at all on this page
+                consecutive_empty_pages += 1
+                if consecutive_empty_pages >= 2:
+                    # Stop after 2 empty pages
+                    break
+                page_num += 1
+                continue
+            
             # Parse this page
             deals_before = len(self.deals)
             self._parse_page(soup)
             deals_found = len(self.deals) - deals_before
             
-            if deals_found == 0:
-                # No more deals on this page, we've reached the end
-                break
+            safe_print(f"      Cruises on page: {len(cruise_links_on_page)}, New deals after dedup: {deals_found}")
             
-            safe_print(f"      Found {deals_found} new deals")
+            # Continue even if we didn't find new deals (might be duplicates, but next page might have new ones)
+            consecutive_empty_pages = 0
             page_num += 1
     
     def _parse_page(self, soup):

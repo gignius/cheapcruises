@@ -155,3 +155,4 @@ echo "3. Restart the service: systemctl restart cheapcruises"
 echo "4. Run initial scrape (optional): cd $APP_DIR && sudo -u $APP_USER $APP_DIR/venv/bin/python run_scraper.py"
 
 
+

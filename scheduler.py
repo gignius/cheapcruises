@@ -105,10 +105,12 @@ def start_scheduler():
     """Start the background scheduler"""
     try:
         # Schedule scraper to run every 6 hours (4 times daily)
+        scraper_hours = getattr(settings, 'scraper_interval_hours', 6)  # Default to 6 if not found
+        
         scheduler.add_job(
             run_cruise_scrapers,
             'interval',
-            hours=settings.scraper_interval_hours,
+            hours=scraper_hours,
             id='cruise_scraper',
             name='Run cruise scrapers every 6 hours',
             replace_existing=True,
