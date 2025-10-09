@@ -104,21 +104,24 @@ async def update_promo_codes():
 def start_scheduler():
     """Start the background scheduler"""
     try:
-        # Schedule scraper to run daily at configured hour
+        # Schedule scraper to run every 6 hours (4 times daily)
         scheduler.add_job(
             run_cruise_scrapers,
-            trigger=CronTrigger(hour=settings.scraper_schedule_hour, minute=0),
+            'interval',
+            hours=settings.scraper_interval_hours,
             id='cruise_scraper',
-            name='Run cruise scrapers',
-            replace_existing=True
+            name='Run cruise scrapers every 6 hours',
+            replace_existing=True,
+            next_run_time=None  # Start immediately on app start
         )
         
-        # Schedule promo code update daily
+        # Schedule promo code update every 12 hours
         scheduler.add_job(
             update_promo_codes,
-            trigger=CronTrigger(hour=0, minute=30),
+            'interval',
+            hours=12,
             id='promo_code_updater',
-            name='Update promo codes',
+            name='Update promo codes every 12 hours',
             replace_existing=True
         )
         

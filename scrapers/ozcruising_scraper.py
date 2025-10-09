@@ -22,14 +22,25 @@ class OzCruisingScraper(BaseScraper):
         self.deals = []
         
         try:
-            # Scrape multiple pages for more deals
+            # Scrape multiple pages for more deals - EXPANDED COVERAGE
             pages_to_scrape = [
+                # Homepage & Specials
                 self.BASE_URL,  # Homepage featured deals
                 f"{self.BASE_URL}/cruise-specials",  # Special deals
-                f"{self.BASE_URL}/cheap-cruises-from-sydney",  # Sydney deals
-                f"{self.BASE_URL}/cheap-cruises-from-brisbane",  # Brisbane deals
+                f"{self.BASE_URL}/last-minute-cruises",  # Last minute deals
                 
-                # Cruise Line Pages - All major brands
+                # Australian Ports
+                f"{self.BASE_URL}/cheap-cruises-from-sydney",
+                f"{self.BASE_URL}/cheap-cruises-from-brisbane",
+                f"{self.BASE_URL}/cheap-cruises-from-melbourne",
+                f"{self.BASE_URL}/cheap-cruises-from-perth",
+                f"{self.BASE_URL}/cheap-cruises-from-adelaide",
+                
+                # International Ports
+                f"{self.BASE_URL}/cheap-cruises-from-auckland",
+                f"{self.BASE_URL}/cheap-cruises-from-singapore",
+                
+                # All Cruise Lines (comprehensive)
                 f"{self.BASE_URL}/searchcruise/bysearchbar/17/-111/-111/-111/true/-111/-111/-111/-111",  # Carnival
                 f"{self.BASE_URL}/searchcruise/bysearchbar/5/-111/-111/-111/true/-111/-111/-111/-111/all-bold",  # Royal Caribbean
                 f"{self.BASE_URL}/searchcruise/bysearchbar/4/-111/-111/-111/true/-111/-111/-111/-111-bold",  # Princess
@@ -42,6 +53,14 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/searchcruise/bysearchbar/18/-111/-111/-111/true/-111/-111/-111/-111/all/-111-bold",  # Seabourn
                 f"{self.BASE_URL}/searchcruise/bysearchbar/47/-111/-111/-111/true/-111/-111/-111/-111/all/-111-bold",  # Viking
                 f"{self.BASE_URL}/searchcruise/bysearchbar/azamaraclubcruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Azamara
+                
+                # Popular Destinations (worldwide coverage)
+                f"{self.BASE_URL}/caribbean-cruises",
+                f"{self.BASE_URL}/alaska-cruises",
+                f"{self.BASE_URL}/mediterranean-cruises",
+                f"{self.BASE_URL}/europe-cruises",
+                f"{self.BASE_URL}/south-pacific-cruises",
+                f"{self.BASE_URL}/asia-cruises",
             ]
             
             for page_url in pages_to_scrape:
