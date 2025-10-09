@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime
 import time
-import config
+from config_settings import settings
 from models import CruiseDeal
 
 
@@ -24,7 +24,7 @@ class BaseScraper(ABC):
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': config.USER_AGENT,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate, br',
@@ -38,7 +38,7 @@ class BaseScraper(ABC):
         """Fetch and parse a page with retry logic"""
         for attempt in range(retry):
             try:
-                response = self.session.get(url, timeout=config.REQUEST_TIMEOUT)
+                response = self.session.get(url, timeout=30)
                 response.raise_for_status()
                 return BeautifulSoup(response.content, 'lxml')
             except requests.RequestException as e:
@@ -57,7 +57,7 @@ class BaseScraper(ABC):
     def get_good_deals(self, threshold: float = None) -> List[CruiseDeal]:
         """Filter deals below the price threshold"""
         if threshold is None:
-            threshold = config.PRICE_THRESHOLD
+            threshold = 200.0
         return [deal for deal in self.deals if deal.is_good_deal(threshold)]
 
     @property
