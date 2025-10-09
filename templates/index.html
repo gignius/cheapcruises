@@ -137,6 +137,38 @@
             </a>
         </div>
     </section>
+
+    <!-- Promo Codes Preview -->
+    <section class="bg-gray-100 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Active Worldwide Promo Codes</h2>
+            
+            <div x-show="promoCodes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-cloak>
+                <template x-for="code in promoCodes.slice(0, 6)" :key="code.id">
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-2xl font-bold text-cruise-600" x-text="code.code"></span>
+                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded">
+                                VALID
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-2 font-semibold" x-text="code.cruise_line"></p>
+                        <p class="text-sm text-gray-600 mb-4" x-text="code.description"></p>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span>Valid until:</span>
+                            <span x-text="code.valid_until ? new Date(code.valid_until).toLocaleDateString() : 'See details'"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="text-center mt-8">
+                <a href="/promo-codes" class="inline-block bg-white text-cruise-600 border-2 border-cruise-600 px-8 py-3 rounded-lg hover:bg-cruise-50 transition text-lg font-medium">
+                    View All Promo Codes →
+                </a>
+            </div>
+        </div>
+    </section>
 </div>
 
 <script>
@@ -149,6 +181,7 @@
                 deals_under_200: 0
             },
             allDeals: [],
+            promoCodes: [],
             selectedThreshold: 200,
             selectedCruiseLine: '',
             selectedDuration: '',
@@ -222,6 +255,22 @@
                 } finally {
                     this.loading = false;
                 }
+            },
+
+            async loadPromoCodes() {
+                try {
+                    const response = await fetch('/api/promo-codes?valid_only=true');
+                    const data = await response.json();
+                    if (data.success) {
+                        this.promoCodes = data.promo_codes;
+                    }
+                } catch (error) {
+                    console.error('Error loading promo codes:', error);
+                }
+            },
+
+            init() {
+                this.loadPromoCodes();
             }
         }
     }
