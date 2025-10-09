@@ -141,21 +141,6 @@ class PromoCodeDatabase:
                 last_validated=datetime.now()
             ),
             
-            # Carnival Codes (includes P&O Australia - they merged)
-            PromoCode(
-                code="CARNIVAL50",
-                cruise_line="Carnival",
-                description="Early Saver - Up to $50 per person off",
-                discount_type="instant_savings",
-                discount_value=50.0,
-                valid_from=datetime(2025, 1, 1),
-                valid_until=datetime(2026, 12, 31),
-                conditions="Book early and save. Varies by sailing. New bookings only.",
-                source_url="https://www.carnival.com.au/cruise-deals",
-                status=PromoCodeStatus.VALID,
-                last_validated=datetime.now()
-            ),
-            
             # Norwegian Codes
             PromoCode(
                 code="NCL50",

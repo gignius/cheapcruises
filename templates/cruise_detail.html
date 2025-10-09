@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}{{ cruise.ship_name }} - {{ cruise.destination }} | CheapCruises.io{% endblock %}
+{% block title %}Cruise Details | CheapCruises.io{% endblock %}
 
 {% block content %}
-<div x-data="cruiseDetailPage({{ cruise_id }})" x-init="loadCruise()">
+<div x-data="cruiseDetailPage({{ cruise_id }})" x-init="loadCruise()"  x-cloak>
     <!-- Loading State -->
     <div x-show="loading" class="max-w-4xl mx-auto px-4 py-12">
         <div class="text-center">
