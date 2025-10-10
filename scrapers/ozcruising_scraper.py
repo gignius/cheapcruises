@@ -522,44 +522,77 @@ class OzCruisingScraper(BaseScraper):
         return False
     
     def _enrich_deals_with_images(self):
-        """Enrich deals by visiting detail pages to extract images and detailed info"""
+        """Enrich deals by visiting detail pages to extract images and detailed info using Playwright"""
         import time
         import json
+        import asyncio
+        from playwright.sync_api import sync_playwright
         
-        for i, deal in enumerate(self.deals):
-            try:
-                soup = self.get_page(deal.url)
-                if soup:
-                    # Extract image if not present
-                    if not deal.image_url:
-                        image_url = self._extract_cruise_image(soup)
-                        if image_url:
-                            deal.image_url = image_url
+        logger.info(f"Starting Playwright enrichment for {len(self.deals)} deals")
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(
+                user_agent=self.session.headers.get('User-Agent', 'Mozilla/5.0'),
+                viewport={'width': 1920, 'height': 1080}
+            )
+            page = context.new_page()
+            
+            for i, deal in enumerate(self.deals):
+                try:
+                    logger.debug(f"Enriching deal {i+1}/{len(self.deals)}: {deal.url}")
                     
-                    # Extract detailed information
-                    itinerary = self._extract_itinerary(soup)
-                    if itinerary:
-                        deal.itinerary = json.dumps(itinerary)
+                    # Navigate to the detail page
+                    page.goto(deal.url, wait_until='networkidle', timeout=30000)
                     
-                    cabin_details = self._extract_cabin_details(soup)
-                    if cabin_details:
-                        deal.cabin_details = json.dumps(cabin_details)
+                    page.wait_for_timeout(2000)
                     
-                    inclusions = self._extract_inclusions(soup)
-                    if inclusions:
-                        deal.inclusions = json.dumps(inclusions)
+                    # Get the HTML after JavaScript has loaded
+                    html_content = page.content()
+                    soup = self._parse_html(html_content)
                     
-                    logger.debug(f"Enriched deal {i+1}/{len(self.deals)}")
-                
-                if (i + 1) % 50 == 0:
-                    logger.info(f"Enriched {i+1}/{len(self.deals)} deals with details")
-                    time.sleep(1)
-                elif (i + 1) % 10 == 0:
-                    time.sleep(0.5)
+                    if soup:
+                        # Extract image if not present
+                        if not deal.image_url:
+                            image_url = self._extract_cruise_image(soup)
+                            if image_url:
+                                deal.image_url = image_url
+                        
+                        # Extract detailed information from tabs
+                        itinerary = self._extract_itinerary_playwright(soup)
+                        if itinerary:
+                            deal.itinerary = json.dumps(itinerary)
+                        
+                        cabin_details = self._extract_cabin_details_playwright(soup)
+                        if cabin_details:
+                            deal.cabin_details = json.dumps(cabin_details)
+                        
+                        inclusions = self._extract_inclusions(soup)
+                        if inclusions:
+                            deal.inclusions = json.dumps(inclusions)
+                        
+                        logger.debug(f"Successfully enriched deal {i+1}/{len(self.deals)}")
                     
-            except Exception as e:
-                logger.warning(f"Failed to enrich deal {i+1}: {e}")
-                continue
+                    if (i + 1) % 50 == 0:
+                        logger.info(f"Enriched {i+1}/{len(self.deals)} deals with details")
+                        time.sleep(2)
+                    elif (i + 1) % 10 == 0:
+                        time.sleep(1)
+                    else:
+                        time.sleep(0.5)
+                        
+                except Exception as e:
+                    logger.warning(f"Failed to enrich deal {i+1} ({deal.url}): {e}")
+                    continue
+            
+            browser.close()
+        
+        logger.success(f"Completed enrichment of {len(self.deals)} deals")
+    
+    def _parse_html(self, html_content: str):
+        """Parse HTML content with BeautifulSoup"""
+        from bs4 import BeautifulSoup
+        return BeautifulSoup(html_content, 'lxml')
     
     def _extract_cruise_image(self, soup) -> Optional[str]:
         """Extract the main cruise image from a detail page"""
@@ -573,6 +606,130 @@ class OzCruisingScraper(BaseScraper):
                 else:
                     return f"{self.BASE_URL}{src if src.startswith('/') else '/' + src}"
         return None
+    
+    def _extract_itinerary_playwright(self, soup) -> Optional[List[dict]]:
+        """Extract itinerary from JavaScript-rendered page"""
+        try:
+            itinerary = []
+            
+            # Find rows with port data attributes
+            itinerary_rows = soup.find_all('tr', attrs={'data-cruiseline-portcode': True})
+            
+            if not itinerary_rows:
+                logger.debug("No itinerary rows found with data-cruiseline-portcode")
+                return None
+            
+            for idx, row in enumerate(itinerary_rows):
+                try:
+                    cells = row.find_all('td')
+                    if len(cells) < 3:
+                        continue
+                    
+                    port_info = {'day': idx + 1}
+                    
+                    date_text = cells[0].get_text(strip=True)
+                    if date_text:
+                        port_info['date'] = date_text
+                    
+                    arrival_text = cells[1].get_text(strip=True)
+                    if arrival_text and arrival_text != '-':
+                        port_info['arrival'] = arrival_text
+                    
+                    port_text = cells[2].get_text(strip=True)
+                    if port_text:
+                        port_info['port'] = port_text
+                    
+                    if len(cells) > 3:
+                        departure_text = cells[3].get_text(strip=True)
+                        if departure_text and departure_text != '-':
+                            port_info['departure'] = departure_text
+                    
+                    if port_info.get('port'):
+                        itinerary.append(port_info)
+                        
+                except Exception as e:
+                    logger.debug(f"Error parsing itinerary row {idx}: {e}")
+                    continue
+            
+            if itinerary:
+                logger.info(f"Extracted itinerary with {len(itinerary)} ports")
+                return itinerary
+            else:
+                logger.debug("No itinerary data extracted")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error extracting itinerary: {e}")
+            return None
+    
+    def _extract_cabin_details_playwright(self, soup) -> Optional[List[dict]]:
+        """Extract cabin pricing from JavaScript-rendered page"""
+        try:
+            cabins = []
+            
+            # Look for all table rows - pricing is loaded via JavaScript
+            all_rows = soup.find_all('tr')
+            
+            for row in all_rows:
+                try:
+                    cells = row.find_all('td')
+                    if len(cells) < 4:
+                        continue
+                    
+                    cell_texts = [c.get_text(strip=True) for c in cells]
+                    
+                    # Check if this looks like a cabin pricing row
+                    if not any('$' in text or 'sold out' in text.lower() for text in cell_texts):
+                        continue
+                    
+                    category = cells[0].get_text(strip=True)
+                    if not category or len(category) > 3 or not category[0].isupper():
+                        continue
+                    
+                    cabin_type = cells[1].get_text(strip=True)
+                    if not cabin_type or len(cabin_type) < 5:
+                        continue
+                    
+                    cabin_info = {
+                        'category': category,
+                        'type': cabin_type
+                    }
+                    
+                    price_pp_text = cells[2].get_text(strip=True)
+                    if 'sold out' not in price_pp_text.lower():
+                        price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*)', price_pp_text)
+                        if price_match:
+                            cabin_info['price_pp'] = float(price_match.group(1).replace(',', ''))
+                    
+                    if len(cells) > 3:
+                        total_price_text = cells[3].get_text(strip=True)
+                        if 'sold out' not in total_price_text.lower():
+                            total_match = re.search(r'\$(\d{1,3}(?:,\d{3})*)', total_price_text)
+                            if total_match:
+                                cabin_info['total_price'] = float(total_match.group(1).replace(',', ''))
+                    
+                    if 'sold out' in price_pp_text.lower():
+                        cabin_info['available'] = False
+                    else:
+                        disabled_button = row.find('button', disabled=True)
+                        cabin_info['available'] = disabled_button is None
+                    
+                    cabins.append(cabin_info)
+                    
+                except Exception as e:
+                    logger.debug(f"Error parsing cabin row: {e}")
+                    continue
+            
+            if cabins:
+                logger.info(f"Extracted {len(cabins)} cabin options")
+                return cabins
+            else:
+                logger.debug("No cabin pricing extracted")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Error extracting cabin details: {e}")
+            return None
     
     def _extract_itinerary(self, soup) -> Optional[List[dict]]:
         """Extract itinerary information from detail page
@@ -650,65 +807,43 @@ class OzCruisingScraper(BaseScraper):
             return None
     
     def _extract_cabin_details(self, soup) -> Optional[List[dict]]:
-        """Extract cabin pricing and availability from detail page
-        
-        Returns list of dicts with format:
-        {
-            'category': 'ZI',
-            'type': 'Interior Stateroom (Guaranteed)',
-            'price_pp_2': 1612,  # Price per person for 2 passengers
-            'total_price_2': 3225,  # Total cabin price for 2 passengers
-            'price_pp_4': 1200,  # Price per person for 4 passengers (if available)
-            'total_price_4': 4800,  # Total cabin price for 4 passengers (if available)
-            'available': True
-        }
-        """
+        """Extract cabin pricing and availability from detail page"""
         try:
             cabins = []
             
-            # OzCruising uses a table with thead/tbody for cabin pricing
-            # Look for table with Category, Cabin, Price (pp), Total Cabin Price columns
-            pricing_table = None
-            for table in soup.find_all('table'):
-                thead = table.find('thead')
-                if thead:
-                    header_text = thead.get_text().lower()
-                    if 'category' in header_text and 'cabin' in header_text and 'price' in header_text:
-                        pricing_table = table
-                        break
+            # OzCruising loads pricing via JavaScript, look for table rows with pricing data
+            all_rows = soup.find_all('tr')
             
-            if not pricing_table:
-                logger.debug("No cabin pricing table found")
-                return None
-            
-            tbody = pricing_table.find('tbody')
-            if not tbody:
-                return None
-            
-            # Extract cabin rows
-            for row in tbody.find_all('tr'):
+            for row in all_rows:
                 try:
                     cells = row.find_all('td')
                     if len(cells) < 4:
                         continue
                     
+                    # Check if this looks like a pricing row (has $ or "Sold Out")
+                    cell_texts = [c.get_text(strip=True) for c in cells]
+                    if not any('$' in text or 'sold out' in text.lower() for text in cell_texts):
+                        continue
+                    
                     cabin_info = {}
                     
                     category = cells[0].get_text(strip=True)
-                    if category and category != 'Category':
+                    if category and len(category) <= 3 and category.upper() == category:
                         cabin_info['category'] = category
+                    else:
+                        continue  # Not a valid category row
                     
                     cabin_type = cells[1].get_text(strip=True)
-                    if cabin_type:
+                    if cabin_type and len(cabin_type) > 3:
                         cabin_info['type'] = cabin_type
+                    else:
+                        continue
                     
                     price_pp_text = cells[2].get_text(strip=True)
-                    price_pp = None
                     if 'sold out' not in price_pp_text.lower():
                         price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*)', price_pp_text)
                         if price_match:
-                            price_pp = float(price_match.group(1).replace(',', ''))
-                            cabin_info['price_pp'] = price_pp
+                            cabin_info['price_pp'] = float(price_match.group(1).replace(',', ''))
                     
                     total_price_text = cells[3].get_text(strip=True)
                     if 'sold out' not in total_price_text.lower():
@@ -719,18 +854,23 @@ class OzCruisingScraper(BaseScraper):
                     if 'sold out' in price_pp_text.lower() or 'sold out' in total_price_text.lower():
                         cabin_info['available'] = False
                     else:
-                        # Check if there's a disabled button
-                        button = row.find('button', disabled=True)
-                        cabin_info['available'] = button is None
+                        disabled_button = row.find('button', disabled=True)
+                        cabin_info['available'] = disabled_button is None
                     
+                    # Only add if we have essential fields
                     if cabin_info.get('category') and cabin_info.get('type'):
                         cabins.append(cabin_info)
                         
                 except Exception as e:
-                    logger.debug(f"Error parsing cabin row: {e}")
+                    logger.debug(f"Error parsing potential cabin row: {e}")
                     continue
             
-            return cabins if cabins else None
+            if cabins:
+                logger.info(f"Extracted {len(cabins)} cabin options")
+                return cabins
+            else:
+                logger.debug("No cabin pricing found")
+                return None
             
         except Exception as e:
             logger.warning(f"Error extracting cabin details: {e}")
