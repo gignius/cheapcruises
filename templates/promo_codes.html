@@ -309,13 +309,10 @@
 
             async vote(codeId, voteType) {
                 try {
-                    const params = new URLSearchParams();
-                    params.append('vote_type', voteType);
-                    
                     const response = await fetch(`/api/promo-codes/${codeId}/vote`, {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: params.toString()
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({vote_type: voteType})
                     });
                     
                     const data = await response.json();
