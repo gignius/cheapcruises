@@ -1,11 +1,10 @@
 """Add detailed cruise information fields to database"""
 import asyncio
 from sqlalchemy import text
-from database_async import get_engine
+from database_async import engine
 
 async def migrate():
     """Add new fields to cruise_deals table"""
-    engine = get_engine()
     
     migrations = [
         "ALTER TABLE cruise_deals ADD COLUMN IF NOT EXISTS cabin_details TEXT",
