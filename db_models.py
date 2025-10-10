@@ -27,6 +27,12 @@ class CruiseDealDB(Base):
     url: Mapped[Optional[str]] = mapped_column(String(500))
     special_offers: Mapped[Optional[str]] = mapped_column(Text)
     image_url: Mapped[Optional[str]] = mapped_column(String(500))
+    
+    cabin_details: Mapped[Optional[str]] = mapped_column(Text)  # JSON: [{category, type, price_pp, total_price, available}]
+    itinerary: Mapped[Optional[str]] = mapped_column(Text)  # JSON: [{port, arrival, departure, description}]
+    ship_details: Mapped[Optional[str]] = mapped_column(Text)  # JSON: {tonnage, capacity, year_built, amenities}
+    inclusions: Mapped[Optional[str]] = mapped_column(Text)  # JSON: [list of included items]
+    
     scraped_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     last_updated: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
