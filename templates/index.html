@@ -90,7 +90,7 @@
                                 <p class="text-sm text-gray-600" x-text="deal.ship_name"></p>
                             </div>
                             <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded">
-                                <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(deal.price_per_day))"></span>/night
+                                $<span x-text="Math.round(deal.price_per_day)"></span>/night
                             </span>
                         </div>
                         
@@ -114,7 +114,7 @@
                                 <div>
                                     <p class="text-xs text-gray-500">Total Price</p>
                                     <p class="text-xl font-bold text-cruise-600">
-                                        <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(deal.total_price_aud))"></span>
+                                        $<span x-text="Math.round(deal.total_price_aud)"></span>
                                     </p>
                                 </div>
                                 <div class="flex gap-2">
@@ -191,27 +191,6 @@
             selectedCruiseLine: '',
             selectedDuration: '',
             loading: true,
-
-            get currency() {
-                return this.$root.currency || 'AUD';
-            },
-            
-            get exchangeRates() {
-                return this.$root.exchangeRates || {
-                    'AUD': 1.0,
-                    'USD': 0.65,
-                    'EUR': 0.60,
-                    'GBP': 0.52
-                };
-            },
-
-            get currencySymbol() {
-                return {'AUD': '$', 'USD': '$', 'EUR': '€', 'GBP': '£'}[this.currency] || '$';
-            },
-
-            convertPrice(audPrice) {
-                return audPrice * this.exchangeRates[this.currency];
-            },
 
             get currentDeals() {
                 let filtered = this.allDeals;

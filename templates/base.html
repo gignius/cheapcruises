@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CheapCruises.io - Find Amazing Cruise Deals{% endblock %}</title>
+    <title>{% block title %}CheapCruises.au - Find Amazing Cruise Deals{% endblock %}</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -36,38 +36,7 @@
     
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50" x-data="appData()" x-init="init()">
-    <script>
-        function appData() {
-            return {
-                currency: 'AUD',
-                exchangeRates: {
-                    'AUD': 1.0,
-                    'USD': 0.65,
-                    'EUR': 0.60,
-                    'GBP': 0.52
-                },
-                async init() {
-                    await this.loadExchangeRates();
-                    this.$watch('currency', (value) => {
-                        window.dispatchEvent(new CustomEvent('currency-changed', { detail: { currency: value } }));
-                    });
-                },
-                async loadExchangeRates() {
-                    try {
-                        const response = await fetch('/api/exchange-rates');
-                        const data = await response.json();
-                        if (data.success && data.rates) {
-                            this.exchangeRates = data.rates;
-                            console.log('Loaded live exchange rates:', data.rates);
-                        }
-                    } catch (error) {
-                        console.error('Failed to load exchange rates, using fallback:', error);
-                    }
-                }
-            }
-        }
-    </script>
+<body class="bg-gray-50" x-data="{ currency: 'AUD' }">
     <!-- Navigation -->
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,7 +44,7 @@
                 <div class="flex items-center">
                     <a href="/" class="flex items-center">
                         <span class="text-2xl">🚢</span>
-                        <span class="ml-2 text-xl font-bold text-cruise-600">CheapCruises.io</span>
+                        <span class="ml-2 text-xl font-bold text-cruise-600">CheapCruises.au</span>
                     </a>
                 </div>
                 <div class="flex items-center space-x-6">
@@ -84,15 +53,7 @@
                     <a href="/promo-codes" class="text-gray-700 hover:text-cruise-600 px-3 py-2 rounded-md text-sm font-medium">Promo Codes</a>
                     <a href="/api/docs" class="text-gray-700 hover:text-cruise-600 px-3 py-2 rounded-md text-sm font-medium">API</a>
                     
-                    <!-- Currency Dropdown (Top Right) -->
-                    <div class="relative">
-                        <select x-model="currency" class="px-3 py-1.5 border-2 border-cruise-600 rounded-lg text-sm font-semibold text-cruise-700 bg-white hover:bg-cruise-50 focus:outline-none focus:ring-2 focus:ring-cruise-500 cursor-pointer">
-                            <option value="AUD">🇦🇺 AUD $</option>
-                            <option value="USD">🇺🇸 USD $</option>
-                            <option value="EUR">🇪🇺 EUR €</option>
-                            <option value="GBP">🇬🇧 GBP £</option>
-                        </select>
-                    </div>
+                    <!-- All prices in AUD -->
                 </div>
             </div>
         </div>
@@ -107,7 +68,7 @@
     <footer class="bg-gray-800 text-white mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center">
-                <p>&copy; 2025 CheapCruises.io - Find the best cruise deals worldwide</p>
+                <p>&copy; 2025 CheapCruises.au - Find the best cruise deals in Australia</p>
                 <p class="mt-2 text-gray-400 text-sm">
                     Covering 11 major cruise lines worldwide
                 </p>

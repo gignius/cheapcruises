@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Cruise Details | CheapCruises.io{% endblock %}
+{% block title %}Cruise Details | CheapCruises.au{% endblock %}
 
 {% block content %}
 <div x-data="cruiseDetailPage({{ cruise_id }})" x-init="loadCruise()"  x-cloak>
@@ -114,7 +114,7 @@
                                 <div class="border rounded-lg p-4">
                                     <p class="font-semibold text-lg mb-2" x-text="cabin.type"></p>
                                     <p class="text-2xl font-bold text-cruise-600 mb-2" x-show="cabin.price_pp">
-                                        <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(cabin.price_pp))"></span>
+                                        $<span x-text="Math.round(cabin.price_pp)"></span>
                                         <span class="text-sm text-gray-500">pp</span>
                                     </p>
                                     <p class="text-sm" :class="cabin.available ? 'text-green-600' : 'text-red-600'" x-show="cabin.available !== undefined" x-text="cabin.available ? '✓ Available' : '✗ Sold Out'"></p>
@@ -145,14 +145,14 @@
                         <div class="mb-6">
                             <p class="text-sm text-gray-500 mb-2">Price Per Night</p>
                             <p class="text-4xl font-bold text-cruise-600">
-                                <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(cruise.price_per_day))"></span>
+                                $<span x-text="Math.round(cruise.price_per_day)"></span>
                             </p>
                         </div>
 
                         <div class="mb-8 pb-6 border-b">
                             <p class="text-sm text-gray-500 mb-2">Total Price</p>
                             <p class="text-3xl font-bold">
-                                <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(cruise.total_price_aud))"></span>
+                                $<span x-text="Math.round(cruise.total_price_aud)"></span>
                             </p>
                             <p class="text-xs text-gray-500 mt-1">For <span x-text="cruise.duration_days"></span> days</p>
                         </div>
@@ -183,27 +183,6 @@
         return {
             cruise: null,
             loading: true,
-
-            get currency() {
-                return this.$root.currency || 'AUD';
-            },
-            
-            get exchangeRates() {
-                return this.$root.exchangeRates || {
-                    'AUD': 1.0,
-                    'USD': 0.65,
-                    'EUR': 0.60,
-                    'GBP': 0.52
-                };
-            },
-
-            get currencySymbol() {
-                return {'AUD': '$', 'USD': '$', 'EUR': '€', 'GBP': '£'}[this.currency] || '$';
-            },
-
-            convertPrice(audPrice) {
-                return audPrice * this.exchangeRates[this.currency];
-            },
 
             parseItinerary(itineraryJson) {
                 try {
