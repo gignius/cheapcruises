@@ -366,6 +366,62 @@ async def health_check():
     return {"status": "healthy", "version": settings.app_version}
 
 
+@app.get("/api/exchange-rates")
+async def get_exchange_rates():
+    """Get current exchange rates from AUD to other currencies"""
+    import httpx
+    from datetime import datetime, timedelta
+    
+    cache_key = "exchange_rates_cache"
+    cache_duration = timedelta(hours=12)
+    
+    if not hasattr(get_exchange_rates, "cache"):
+        get_exchange_rates.cache = {}
+    
+    if cache_key in get_exchange_rates.cache:
+        cached_data, cached_time = get_exchange_rates.cache[cache_key]
+        if datetime.now() - cached_time < cache_duration:
+            logger.debug("Returning cached exchange rates")
+            return cached_data
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get("https://api.exchangerate-api.com/v4/latest/AUD")
+            response.raise_for_status()
+            data = response.json()
+            
+            result = {
+                "success": True,
+                "base": "AUD",
+                "rates": {
+                    "AUD": 1.0,
+                    "USD": data["rates"]["USD"],
+                    "EUR": data["rates"]["EUR"],
+                    "GBP": data["rates"]["GBP"]
+                },
+                "last_updated": data["date"]
+            }
+            
+            get_exchange_rates.cache[cache_key] = (result, datetime.now())
+            logger.info(f"Fetched fresh exchange rates: USD={result['rates']['USD']}, EUR={result['rates']['EUR']}, GBP={result['rates']['GBP']}")
+            
+            return result
+    except Exception as e:
+        logger.error(f"Error fetching exchange rates: {e}")
+        return {
+            "success": True,
+            "base": "AUD",
+            "rates": {
+                "AUD": 1.0,
+                "USD": 0.65,
+                "EUR": 0.60,
+                "GBP": 0.52
+            },
+            "last_updated": "fallback",
+            "note": "Using fallback rates due to API error"
+        }
+
+
 @app.post("/api/promo-codes/submit")
 async def submit_promo_code(
     promo_data: PromoCodeSubmit,

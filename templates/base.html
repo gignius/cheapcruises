@@ -41,11 +41,29 @@
         function appData() {
             return {
                 currency: 'AUD',
-                init() {
-                    // Watch for currency changes and dispatch event to notify child components
+                exchangeRates: {
+                    'AUD': 1.0,
+                    'USD': 0.65,
+                    'EUR': 0.60,
+                    'GBP': 0.52
+                },
+                async init() {
+                    await this.loadExchangeRates();
                     this.$watch('currency', (value) => {
                         window.dispatchEvent(new CustomEvent('currency-changed', { detail: { currency: value } }));
                     });
+                },
+                async loadExchangeRates() {
+                    try {
+                        const response = await fetch('/api/exchange-rates');
+                        const data = await response.json();
+                        if (data.success && data.rates) {
+                            this.exchangeRates = data.rates;
+                            console.log('Loaded live exchange rates:', data.rates);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load exchange rates, using fallback:', error);
+                    }
                 }
             }
         }

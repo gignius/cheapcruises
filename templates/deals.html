@@ -184,12 +184,6 @@
         return {
             deals: [],
             loading: true,
-            exchangeRates: {
-                'AUD': 1.0,
-                'USD': 0.65,
-                'EUR': 0.60,
-                'GBP': 0.52
-            },
             filters: {
                 maxPrice: '',
                 cruiseLine: '',
@@ -200,6 +194,15 @@
             
             get currency() {
                 return this.$root.currency || 'AUD';
+            },
+            
+            get exchangeRates() {
+                return this.$root.exchangeRates || {
+                    'AUD': 1.0,
+                    'USD': 0.65,
+                    'EUR': 0.60,
+                    'GBP': 0.52
+                };
             },
             
             get currencySymbol() {
