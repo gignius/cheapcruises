@@ -190,9 +190,12 @@
                         <div class="border-t pt-4">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs text-gray-500">Total Price</p>
+                                    <p class="text-xs text-gray-500">Total Price (2 people)</p>
                                     <p class="text-xl font-bold text-cruise-600">
                                         $<span x-text="Math.round(deal.total_price_aud)"></span>
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        $<span x-text="Math.round(deal.total_price_aud / 2)"></span> per person
                                     </p>
                                 </div>
                                 <div class="flex gap-2">

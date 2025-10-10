@@ -156,16 +156,19 @@
                         <div class="border-t pt-4">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-xs text-gray-500">Total Price</p>
+                                    <p class="text-xs text-gray-500">Total Price (2 people)</p>
                                     <p class="text-xl font-bold text-cruise-600">
                                         $<span x-text="Math.round(deal.total_price_aud)"></span>
                                     </p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        $<span x-text="Math.round(deal.total_price_aud / 2)"></span> per person
+                                    </p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <a :href="'/cruise/' + deal.id" class="flex-1 bg-cruise-100 text-cruise-700 px-3 py-2 rounded-lg hover:bg-cruise-200 transition text-xs font-medium text-center">
+                                    <a :href="'/cruise/' + deal.id" class="bg-cruise-100 text-cruise-700 px-3 py-2 rounded-lg hover:bg-cruise-200 transition text-xs font-medium text-center">
                                         Details
                                     </a>
-                                    <a :href="deal.url" target="_blank" rel="noopener noreferrer" class="flex-1 bg-cruise-600 text-white px-3 py-2 rounded-lg hover:bg-cruise-700 transition text-xs font-medium text-center">
+                                    <a :href="deal.url" target="_blank" rel="noopener noreferrer" class="bg-cruise-600 text-white px-3 py-2 rounded-lg hover:bg-cruise-700 transition text-xs font-medium text-center">
                                         Book
                                     </a>
                                 </div>

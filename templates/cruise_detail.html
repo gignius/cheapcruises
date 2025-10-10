@@ -86,40 +86,71 @@
 
                     <!-- Itinerary Section -->
                     <div x-show="cruise.itinerary" class="bg-white rounded-lg shadow-lg p-8 mt-8">
-                        <h2 class="text-2xl font-bold mb-6">📍 Itinerary</h2>
-                        <div class="space-y-4">
-                            <template x-for="(port, index) in parseItinerary(cruise.itinerary)" :key="index">
-                                <div class="border-l-4 border-cruise-500 pl-4 py-3">
-                                    <div class="flex items-start justify-between">
-                                        <div>
-                                            <p class="font-semibold text-lg" x-text="port.port"></p>
-                                            <p class="text-sm text-gray-600" x-show="port.day" x-text="'Day ' + port.day"></p>
-                                        </div>
-                                        <div class="text-right text-sm text-gray-600">
-                                            <p x-show="port.arrival" x-text="'Arrive: ' + port.arrival"></p>
-                                            <p x-show="port.departure" x-text="'Depart: ' + port.departure"></p>
-                                        </div>
-                                    </div>
-                                    <p x-show="port.description" class="text-sm text-gray-700 mt-2" x-text="port.description"></p>
-                                </div>
-                            </template>
+                        <h2 class="text-2xl font-bold mb-6">📍 Ports & Itinerary</h2>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Port</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrive</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Depart</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(port, index) in parseItinerary(cruise.itinerary)" :key="index">
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900" x-text="port.day || (index + 1)"></td>
+                                            <td class="px-4 py-3 text-sm font-semibold text-gray-900" x-text="port.port"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600" x-text="port.date || '-'"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600" x-text="port.arrival || '-'"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600" x-text="port.departure || '-'"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
                     <!-- Cabin Options Section -->
                     <div x-show="cruise.cabin_details" class="bg-white rounded-lg shadow-lg p-8 mt-8">
-                        <h2 class="text-2xl font-bold mb-6">🛏️ Cabin Options</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <template x-for="(cabin, index) in parseCabinDetails(cruise.cabin_details)" :key="index">
-                                <div class="border rounded-lg p-4">
-                                    <p class="font-semibold text-lg mb-2" x-text="cabin.type"></p>
-                                    <p class="text-2xl font-bold text-cruise-600 mb-2" x-show="cabin.price_pp">
-                                        $<span x-text="Math.round(cabin.price_pp)"></span>
-                                        <span class="text-sm text-gray-500">pp</span>
-                                    </p>
-                                    <p class="text-sm" :class="cabin.available ? 'text-green-600' : 'text-red-600'" x-show="cabin.available !== undefined" x-text="cabin.available ? '✓ Available' : '✗ Sold Out'"></p>
-                                </div>
-                            </template>
+                        <h2 class="text-2xl font-bold mb-6">🛏️ Stateroom Categories & Pricing</h2>
+                        
+                        <p class="text-sm text-gray-600 mb-4">Prices shown are per person based on double occupancy (2 passengers)</p>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stateroom Type</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (pp)</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cabin Price</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(cabin, index) in parseCabinDetails(cruise.cabin_details)" :key="index">
+                                        <tr :class="cabin.available === false ? 'bg-gray-50 opacity-60' : ''">
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900" x-text="cabin.category || '-'"></td>
+                                            <td class="px-4 py-3 text-sm text-gray-900" x-text="cabin.type"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-cruise-600" x-show="cabin.price_pp">
+                                                $<span x-text="Math.round(cabin.price_pp).toLocaleString()"></span>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900" x-show="cabin.total_price">
+                                                $<span x-text="Math.round(cabin.total_price).toLocaleString()"></span>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                                <span x-show="cabin.available === true" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Available</span>
+                                                <span x-show="cabin.available === false" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Sold Out</span>
+                                                <span x-show="!cabin.price_pp && cabin.available !== false" class="text-gray-500">-</span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 

@@ -575,59 +575,73 @@ class OzCruisingScraper(BaseScraper):
         return None
     
     def _extract_itinerary(self, soup) -> Optional[List[dict]]:
-        """Extract itinerary information from detail page"""
+        """Extract itinerary information from detail page
+        
+        Returns list of dicts with format:
+        {
+            'day': 1,
+            'date': 'Thu 19 Feb 2026',
+            'port': 'Brisbane',
+            'arrival': '5:00 PM',
+            'departure': '5:00 PM'
+        }
+        """
         try:
             itinerary = []
             
-            # Look for itinerary table or list
-            # OzCruising usually has itinerary in a structured format
-            itinerary_section = soup.find(['div', 'section'], class_=re.compile(r'itinerary', re.I))
-            if not itinerary_section:
-                for elem in soup.find_all(['h2', 'h3', 'h4']):
-                    if 'itinerary' in elem.get_text().lower():
-                        itinerary_section = elem.find_parent(['div', 'section'])
-                        break
+            # OzCruising has itinerary data in table rows with data-* attributes
+            # Look for rows with data-cruiseline-portcode or similar attributes
+            itinerary_rows = soup.find_all('tr', attrs={'data-cruiseline-portcode': True})
             
-            if itinerary_section:
-                # Look for table rows or list items with port information
-                rows = itinerary_section.find_all(['tr', 'li', 'div'])
-                
-                for row in rows:
-                    text = row.get_text(separator=' ', strip=True)
-                    
-                    if not text or len(text) < 5:
+            if not itinerary_rows:
+                itinerary_section = soup.find(['div', 'section'], id=re.compile(r'itinerary', re.I))
+                if itinerary_section:
+                    itinerary_rows = itinerary_section.find_all('tr')
+            
+            if itinerary_rows:
+                day_counter = 1
+                for row in itinerary_rows:
+                    try:
+                        cells = row.find_all('td')
+                        if len(cells) < 1:
+                            continue
+                        
+                        port_info = {'day': day_counter}
+                        
+                        # Extract port name from first cell
+                        port_text = cells[0].get_text(strip=True)
+                        if port_text and len(port_text) > 2:
+                            # Clean up port name (remove country if present)
+                            port_name = port_text.split('-')[0].strip() if '-' in port_text else port_text
+                            port_info['port'] = port_name
+                        
+                        # Extract date if present (usually in second cell)
+                        if len(cells) > 1:
+                            date_text = cells[1].get_text(strip=True)
+                            if date_text:
+                                port_info['date'] = date_text
+                        
+                        # Extract arrival/departure times if present
+                        if len(cells) > 2:
+                            arrival_text = cells[2].get_text(strip=True)
+                            if arrival_text and arrival_text != '-':
+                                port_info['arrival'] = arrival_text
+                        
+                        if len(cells) > 3:
+                            departure_text = cells[3].get_text(strip=True)
+                            if departure_text and departure_text != '-':
+                                port_info['departure'] = departure_text
+                        
+                        # Only add if we have a port name
+                        if port_info.get('port'):
+                            # Skip if it's just "Cruising" or "At Sea"
+                            if 'cruising' not in port_info['port'].lower() or len(itinerary_rows) <= 3:
+                                itinerary.append(port_info)
+                                day_counter += 1
+                            
+                    except Exception as e:
+                        logger.debug(f"Error parsing itinerary row: {e}")
                         continue
-                    
-                    # Try to extract port information
-                    port_info = {}
-                    
-                    # Extract day number
-                    day_match = re.search(r'Day\s+(\d+)', text, re.I)
-                    if day_match:
-                        port_info['day'] = int(day_match.group(1))
-                    
-                    # Extract port name
-                    # Look for port names (usually after "Port:" or after day number)
-                    port_match = re.search(r'(?:Port:|Day\s+\d+:?)\s*([A-Za-z\s,]+?)(?:\s*-|\s*\(|$)', text, re.I)
-                    if port_match:
-                        port_info['port'] = port_match.group(1).strip()
-                    elif len(text) > 0 and 'day' in port_info:
-                        parts = text.split(':', 1)
-                        if len(parts) > 1:
-                            port_info['port'] = parts[1].strip()
-                    
-                    # Extract times if present
-                    arrival_match = re.search(r'Arrive[sd]?:?\s*(\d{1,2}:\d{2}|\d{1,2}\s*[AP]M)', text, re.I)
-                    if arrival_match:
-                        port_info['arrival'] = arrival_match.group(1)
-                    
-                    departure_match = re.search(r'Depart[s]?:?\s*(\d{1,2}:\d{2}|\d{1,2}\s*[AP]M)', text, re.I)
-                    if departure_match:
-                        port_info['departure'] = departure_match.group(1)
-                    
-                    if port_info.get('port'):
-                        port_info['description'] = text[:200]  # Limit description length
-                        itinerary.append(port_info)
             
             return itinerary if itinerary else None
             
@@ -636,46 +650,85 @@ class OzCruisingScraper(BaseScraper):
             return None
     
     def _extract_cabin_details(self, soup) -> Optional[List[dict]]:
-        """Extract cabin pricing and availability from detail page"""
+        """Extract cabin pricing and availability from detail page
+        
+        Returns list of dicts with format:
+        {
+            'category': 'ZI',
+            'type': 'Interior Stateroom (Guaranteed)',
+            'price_pp_2': 1612,  # Price per person for 2 passengers
+            'total_price_2': 3225,  # Total cabin price for 2 passengers
+            'price_pp_4': 1200,  # Price per person for 4 passengers (if available)
+            'total_price_4': 4800,  # Total cabin price for 4 passengers (if available)
+            'available': True
+        }
+        """
         try:
             cabins = []
             
-            # Look for cabin pricing section
-            cabin_section = soup.find(['div', 'section', 'table'], class_=re.compile(r'cabin|pricing|fare', re.I))
-            if not cabin_section:
-                for elem in soup.find_all(['h2', 'h3', 'h4']):
-                    if any(word in elem.get_text().lower() for word in ['cabin', 'pricing', 'fares', 'stateroom']):
-                        cabin_section = elem.find_parent(['div', 'section', 'table'])
+            # OzCruising uses a table with thead/tbody for cabin pricing
+            # Look for table with Category, Cabin, Price (pp), Total Cabin Price columns
+            pricing_table = None
+            for table in soup.find_all('table'):
+                thead = table.find('thead')
+                if thead:
+                    header_text = thead.get_text().lower()
+                    if 'category' in header_text and 'cabin' in header_text and 'price' in header_text:
+                        pricing_table = table
                         break
             
-            if cabin_section:
-                # Look for rows with cabin types and prices
-                rows = cabin_section.find_all(['tr', 'div'])
-                
-                for row in rows:
-                    text = row.get_text(separator=' ', strip=True)
+            if not pricing_table:
+                logger.debug("No cabin pricing table found")
+                return None
+            
+            tbody = pricing_table.find('tbody')
+            if not tbody:
+                return None
+            
+            # Extract cabin rows
+            for row in tbody.find_all('tr'):
+                try:
+                    cells = row.find_all('td')
+                    if len(cells) < 4:
+                        continue
                     
-                    # Look for cabin types
-                    cabin_types = ['Interior', 'Oceanview', 'Balcony', 'Suite', 'Twin', 'Quad']
                     cabin_info = {}
                     
-                    for cabin_type in cabin_types:
-                        if cabin_type.lower() in text.lower():
-                            cabin_info['type'] = cabin_type
-                            break
+                    category = cells[0].get_text(strip=True)
+                    if category and category != 'Category':
+                        cabin_info['category'] = category
                     
-                    if cabin_info.get('type'):
-                        # Extract price
-                        price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)', text)
+                    cabin_type = cells[1].get_text(strip=True)
+                    if cabin_type:
+                        cabin_info['type'] = cabin_type
+                    
+                    price_pp_text = cells[2].get_text(strip=True)
+                    price_pp = None
+                    if 'sold out' not in price_pp_text.lower():
+                        price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*)', price_pp_text)
                         if price_match:
-                            cabin_info['price_pp'] = float(price_match.group(1).replace(',', ''))
-                        
-                        if any(word in text.lower() for word in ['available', 'book now']):
-                            cabin_info['available'] = True
-                        elif any(word in text.lower() for word in ['sold out', 'unavailable']):
-                            cabin_info['available'] = False
-                        
+                            price_pp = float(price_match.group(1).replace(',', ''))
+                            cabin_info['price_pp'] = price_pp
+                    
+                    total_price_text = cells[3].get_text(strip=True)
+                    if 'sold out' not in total_price_text.lower():
+                        total_match = re.search(r'\$(\d{1,3}(?:,\d{3})*)', total_price_text)
+                        if total_match:
+                            cabin_info['total_price'] = float(total_match.group(1).replace(',', ''))
+                    
+                    if 'sold out' in price_pp_text.lower() or 'sold out' in total_price_text.lower():
+                        cabin_info['available'] = False
+                    else:
+                        # Check if there's a disabled button
+                        button = row.find('button', disabled=True)
+                        cabin_info['available'] = button is None
+                    
+                    if cabin_info.get('category') and cabin_info.get('type'):
                         cabins.append(cabin_info)
+                        
+                except Exception as e:
+                    logger.debug(f"Error parsing cabin row: {e}")
+                    continue
             
             return cabins if cabins else None
             
