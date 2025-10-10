@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional, List
+from loguru import logger
 
 from config_settings import settings
 from database_async import init_db, get_db, CruiseDealRepository, PromoCodeRepository
