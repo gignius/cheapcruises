@@ -256,7 +256,7 @@ class PromoCodeRepository:
         return db_code
     
     async def get_all(self, cruise_line: Optional[str] = None, valid_only: bool = False):
-        """Get all promo codes with filters"""
+        """Get all promo codes with filters, sorted by upvotes (highest first)"""
         query = select(PromoCodeDB)
         
         if cruise_line:
@@ -264,6 +264,8 @@ class PromoCodeRepository:
         
         if valid_only:
             query = query.where(PromoCodeDB.status == PromoCodeStatus.VALID.value)
+        
+        query = query.order_by(PromoCodeDB.upvotes.desc())
         
         result = await self.session.execute(query)
         return result.scalars().all()
