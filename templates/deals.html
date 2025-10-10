@@ -196,10 +196,10 @@
                                     </p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <a :href="'/cruise/' + deal.id" class="flex-1 bg-cruise-100 text-cruise-700 px-4 py-2 rounded-lg hover:bg-cruise-200 transition text-sm font-medium text-center">
+                                    <a :href="'/cruise/' + deal.id" class="bg-cruise-100 text-cruise-700 px-3 py-2 rounded-lg hover:bg-cruise-200 transition text-sm font-medium text-center">
                                         Details
                                     </a>
-                                    <a :href="deal.url || '#'" target="_blank" rel="noopener noreferrer" @click="if(!deal.url) { alert('Booking link unavailable'); $event.preventDefault(); }" class="flex-1 bg-cruise-600 text-white px-4 py-2 rounded-lg hover:bg-cruise-700 transition text-sm font-medium text-center">
+                                    <a :href="deal.url || '#'" target="_blank" rel="noopener noreferrer" @click="if(!deal.url) { alert('Booking link unavailable'); $event.preventDefault(); }" class="bg-cruise-600 text-white px-4 py-2 rounded-lg hover:bg-cruise-700 transition text-sm font-medium text-center">
                                         Book Now
                                     </a>
                                 </div>
