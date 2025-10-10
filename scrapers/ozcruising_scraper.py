@@ -86,6 +86,9 @@ class OzCruisingScraper(BaseScraper):
                 if soup:
                     self._parse_page(soup)
             
+            logger.info(f"Enriching {len(self.deals)} deals with images from detail pages...")
+            self._enrich_deals_with_images()
+            
             logger.success(f"Successfully scraped {len(self.deals)} deals from {self.name}")
             
         except Exception as e:
@@ -497,4 +500,43 @@ class OzCruisingScraper(BaseScraper):
                 deal.duration_days == new_deal.duration_days):
                 return True
         return False
+    
+    def _enrich_deals_with_images(self):
+        """Enrich deals by visiting detail pages to extract images"""
+        import time
+        
+        for i, deal in enumerate(self.deals):
+            if deal.image_url:
+                continue
+            
+            try:
+                soup = self.get_page(deal.url)
+                if soup:
+                    image_url = self._extract_cruise_image(soup)
+                    if image_url:
+                        deal.image_url = image_url
+                        logger.debug(f"Added image for deal {i+1}/{len(self.deals)}")
+                
+                if (i + 1) % 50 == 0:
+                    logger.info(f"Enriched {i+1}/{len(self.deals)} deals with images")
+                    time.sleep(1)
+                elif (i + 1) % 10 == 0:
+                    time.sleep(0.5)
+                    
+            except Exception as e:
+                logger.warning(f"Failed to enrich deal with image: {e}")
+                continue
+    
+    def _extract_cruise_image(self, soup) -> Optional[str]:
+        """Extract the main cruise image from a detail page"""
+        for img in soup.find_all('img'):
+            src = img.get('src', '')
+            if 'cruise/large' in src or ('admin-ozcruising' in src and 'cruise' in src):
+                if src.startswith('http'):
+                    return src
+                elif src.startswith('//'):
+                    return f"https:{src}"
+                else:
+                    return f"{self.BASE_URL}{src if src.startswith('/') else '/' + src}"
+        return None
 
