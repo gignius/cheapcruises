@@ -1,7 +1,7 @@
 """Data models for cruise deals"""
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 
 
 @dataclass
@@ -20,6 +20,10 @@ class CruiseDeal:
     scraped_at: datetime
     special_offers: Optional[str] = None
     image_url: Optional[str] = None
+    cabin_details: Optional[str] = None  # JSON string
+    itinerary: Optional[str] = None  # JSON string
+    ship_details: Optional[str] = None  # JSON string
+    inclusions: Optional[str] = None  # JSON string
 
     def __str__(self):
         return (

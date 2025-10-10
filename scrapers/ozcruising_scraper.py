@@ -502,29 +502,43 @@ class OzCruisingScraper(BaseScraper):
         return False
     
     def _enrich_deals_with_images(self):
-        """Enrich deals by visiting detail pages to extract images"""
+        """Enrich deals by visiting detail pages to extract images and detailed info"""
         import time
+        import json
         
         for i, deal in enumerate(self.deals):
-            if deal.image_url:
-                continue
-            
             try:
                 soup = self.get_page(deal.url)
                 if soup:
-                    image_url = self._extract_cruise_image(soup)
-                    if image_url:
-                        deal.image_url = image_url
-                        logger.debug(f"Added image for deal {i+1}/{len(self.deals)}")
+                    # Extract image if not present
+                    if not deal.image_url:
+                        image_url = self._extract_cruise_image(soup)
+                        if image_url:
+                            deal.image_url = image_url
+                    
+                    # Extract detailed information
+                    itinerary = self._extract_itinerary(soup)
+                    if itinerary:
+                        deal.itinerary = json.dumps(itinerary)
+                    
+                    cabin_details = self._extract_cabin_details(soup)
+                    if cabin_details:
+                        deal.cabin_details = json.dumps(cabin_details)
+                    
+                    inclusions = self._extract_inclusions(soup)
+                    if inclusions:
+                        deal.inclusions = json.dumps(inclusions)
+                    
+                    logger.debug(f"Enriched deal {i+1}/{len(self.deals)}")
                 
                 if (i + 1) % 50 == 0:
-                    logger.info(f"Enriched {i+1}/{len(self.deals)} deals with images")
+                    logger.info(f"Enriched {i+1}/{len(self.deals)} deals with details")
                     time.sleep(1)
                 elif (i + 1) % 10 == 0:
                     time.sleep(0.5)
                     
             except Exception as e:
-                logger.warning(f"Failed to enrich deal with image: {e}")
+                logger.warning(f"Failed to enrich deal {i+1}: {e}")
                 continue
     
     def _extract_cruise_image(self, soup) -> Optional[str]:
@@ -539,4 +553,153 @@ class OzCruisingScraper(BaseScraper):
                 else:
                     return f"{self.BASE_URL}{src if src.startswith('/') else '/' + src}"
         return None
+    
+    def _extract_itinerary(self, soup) -> Optional[List[dict]]:
+        """Extract itinerary information from detail page"""
+        try:
+            itinerary = []
+            
+            # Look for itinerary table or list
+            # OzCruising usually has itinerary in a structured format
+            itinerary_section = soup.find(['div', 'section'], class_=re.compile(r'itinerary', re.I))
+            if not itinerary_section:
+                for elem in soup.find_all(['h2', 'h3', 'h4']):
+                    if 'itinerary' in elem.get_text().lower():
+                        itinerary_section = elem.find_parent(['div', 'section'])
+                        break
+            
+            if itinerary_section:
+                # Look for table rows or list items with port information
+                rows = itinerary_section.find_all(['tr', 'li', 'div'])
+                
+                for row in rows:
+                    text = row.get_text(separator=' ', strip=True)
+                    
+                    if not text or len(text) < 5:
+                        continue
+                    
+                    # Try to extract port information
+                    port_info = {}
+                    
+                    # Extract day number
+                    day_match = re.search(r'Day\s+(\d+)', text, re.I)
+                    if day_match:
+                        port_info['day'] = int(day_match.group(1))
+                    
+                    # Extract port name
+                    # Look for port names (usually after "Port:" or after day number)
+                    port_match = re.search(r'(?:Port:|Day\s+\d+:?)\s*([A-Za-z\s,]+?)(?:\s*-|\s*\(|$)', text, re.I)
+                    if port_match:
+                        port_info['port'] = port_match.group(1).strip()
+                    elif len(text) > 0 and 'day' in port_info:
+                        parts = text.split(':', 1)
+                        if len(parts) > 1:
+                            port_info['port'] = parts[1].strip()
+                    
+                    # Extract times if present
+                    arrival_match = re.search(r'Arrive[sd]?:?\s*(\d{1,2}:\d{2}|\d{1,2}\s*[AP]M)', text, re.I)
+                    if arrival_match:
+                        port_info['arrival'] = arrival_match.group(1)
+                    
+                    departure_match = re.search(r'Depart[s]?:?\s*(\d{1,2}:\d{2}|\d{1,2}\s*[AP]M)', text, re.I)
+                    if departure_match:
+                        port_info['departure'] = departure_match.group(1)
+                    
+                    if port_info.get('port'):
+                        port_info['description'] = text[:200]  # Limit description length
+                        itinerary.append(port_info)
+            
+            return itinerary if itinerary else None
+            
+        except Exception as e:
+            logger.warning(f"Error extracting itinerary: {e}")
+            return None
+    
+    def _extract_cabin_details(self, soup) -> Optional[List[dict]]:
+        """Extract cabin pricing and availability from detail page"""
+        try:
+            cabins = []
+            
+            # Look for cabin pricing section
+            cabin_section = soup.find(['div', 'section', 'table'], class_=re.compile(r'cabin|pricing|fare', re.I))
+            if not cabin_section:
+                for elem in soup.find_all(['h2', 'h3', 'h4']):
+                    if any(word in elem.get_text().lower() for word in ['cabin', 'pricing', 'fares', 'stateroom']):
+                        cabin_section = elem.find_parent(['div', 'section', 'table'])
+                        break
+            
+            if cabin_section:
+                # Look for rows with cabin types and prices
+                rows = cabin_section.find_all(['tr', 'div'])
+                
+                for row in rows:
+                    text = row.get_text(separator=' ', strip=True)
+                    
+                    # Look for cabin types
+                    cabin_types = ['Interior', 'Oceanview', 'Balcony', 'Suite', 'Twin', 'Quad']
+                    cabin_info = {}
+                    
+                    for cabin_type in cabin_types:
+                        if cabin_type.lower() in text.lower():
+                            cabin_info['type'] = cabin_type
+                            break
+                    
+                    if cabin_info.get('type'):
+                        # Extract price
+                        price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)', text)
+                        if price_match:
+                            cabin_info['price_pp'] = float(price_match.group(1).replace(',', ''))
+                        
+                        if any(word in text.lower() for word in ['available', 'book now']):
+                            cabin_info['available'] = True
+                        elif any(word in text.lower() for word in ['sold out', 'unavailable']):
+                            cabin_info['available'] = False
+                        
+                        cabins.append(cabin_info)
+            
+            return cabins if cabins else None
+            
+        except Exception as e:
+            logger.warning(f"Error extracting cabin details: {e}")
+            return None
+    
+    def _extract_inclusions(self, soup) -> Optional[List[str]]:
+        """Extract what's included in the cruise fare"""
+        try:
+            inclusions = []
+            
+            # Look for inclusions section
+            inclusion_section = soup.find(['div', 'section', 'ul'], class_=re.compile(r'inclusion|include|whats.included', re.I))
+            if not inclusion_section:
+                for elem in soup.find_all(['h2', 'h3', 'h4']):
+                    text = elem.get_text().lower()
+                    if 'included' in text or 'inclusion' in text or "what's included" in text:
+                        inclusion_section = elem.find_parent(['div', 'section'])
+                        if not inclusion_section:
+                            # Look for next sibling
+                            inclusion_section = elem.find_next_sibling(['div', 'ul', 'section'])
+                        break
+            
+            if inclusion_section:
+                # Extract list items
+                items = inclusion_section.find_all(['li', 'p'])
+                for item in items:
+                    text = item.get_text(strip=True)
+                    if text and len(text) > 3 and len(text) < 200:
+                        if not any(skip in text.lower() for skip in ['click here', 'read more', 'terms', 'conditions']):
+                            inclusions.append(text)
+            
+            if not inclusions:
+                inclusions = [
+                    "Accommodation onboard",
+                    "Meals in main dining rooms",
+                    "Entertainment and activities",
+                    "Port fees and taxes"
+                ]
+            
+            return inclusions if inclusions else None
+            
+        except Exception as e:
+            logger.warning(f"Error extracting inclusions: {e}")
+            return None
 

@@ -83,6 +83,58 @@
                             <p class="text-sm" x-text="cruise.scraped_at ? new Date(cruise.scraped_at).toLocaleString() : 'Unknown'"></p>
                         </div>
                     </div>
+
+                    <!-- Itinerary Section -->
+                    <div x-show="cruise.itinerary" class="bg-white rounded-lg shadow-lg p-8 mt-8">
+                        <h2 class="text-2xl font-bold mb-6">📍 Itinerary</h2>
+                        <div class="space-y-4">
+                            <template x-for="(port, index) in parseItinerary(cruise.itinerary)" :key="index">
+                                <div class="border-l-4 border-cruise-500 pl-4 py-3">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <p class="font-semibold text-lg" x-text="port.port"></p>
+                                            <p class="text-sm text-gray-600" x-show="port.day" x-text="'Day ' + port.day"></p>
+                                        </div>
+                                        <div class="text-right text-sm text-gray-600">
+                                            <p x-show="port.arrival" x-text="'Arrive: ' + port.arrival"></p>
+                                            <p x-show="port.departure" x-text="'Depart: ' + port.departure"></p>
+                                        </div>
+                                    </div>
+                                    <p x-show="port.description" class="text-sm text-gray-700 mt-2" x-text="port.description"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Cabin Options Section -->
+                    <div x-show="cruise.cabin_details" class="bg-white rounded-lg shadow-lg p-8 mt-8">
+                        <h2 class="text-2xl font-bold mb-6">🛏️ Cabin Options</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="(cabin, index) in parseCabinDetails(cruise.cabin_details)" :key="index">
+                                <div class="border rounded-lg p-4">
+                                    <p class="font-semibold text-lg mb-2" x-text="cabin.type"></p>
+                                    <p class="text-2xl font-bold text-cruise-600 mb-2" x-show="cabin.price_pp">
+                                        <span x-text="currencySymbol"></span><span x-text="Math.round(convertPrice(cabin.price_pp))"></span>
+                                        <span class="text-sm text-gray-500">pp</span>
+                                    </p>
+                                    <p class="text-sm" :class="cabin.available ? 'text-green-600' : 'text-red-600'" x-show="cabin.available !== undefined" x-text="cabin.available ? '✓ Available' : '✗ Sold Out'"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Inclusions Section -->
+                    <div x-show="cruise.inclusions" class="bg-white rounded-lg shadow-lg p-8 mt-8">
+                        <h2 class="text-2xl font-bold mb-6">✨ What's Included</h2>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <template x-for="(inclusion, index) in parseInclusions(cruise.inclusions)" :key="index">
+                                <li class="flex items-start">
+                                    <span class="text-green-500 mr-2">✓</span>
+                                    <span x-text="inclusion"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- Pricing Card -->
@@ -148,6 +200,30 @@
 
             convertPrice(audPrice) {
                 return audPrice * this.exchangeRates[this.currency];
+            },
+
+            parseItinerary(itineraryJson) {
+                try {
+                    return itineraryJson ? JSON.parse(itineraryJson) : [];
+                } catch (e) {
+                    return [];
+                }
+            },
+
+            parseCabinDetails(cabinJson) {
+                try {
+                    return cabinJson ? JSON.parse(cabinJson) : [];
+                } catch (e) {
+                    return [];
+                }
+            },
+
+            parseInclusions(inclusionsJson) {
+                try {
+                    return inclusionsJson ? JSON.parse(inclusionsJson) : [];
+                } catch (e) {
+                    return [];
+                }
             },
 
             async loadCruise() {
