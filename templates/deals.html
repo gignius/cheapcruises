@@ -142,7 +142,7 @@
         </div>
 
         <div x-show="!loading && deals.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-cloak>
-            <template x-for="deal in deals" :key="deal.id">
+            <template x-for="deal in displayedDeals" :key="deal.id">
                 <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden">
                     <!-- Image -->
                     <div class="h-48 bg-gray-200 overflow-hidden">
@@ -216,6 +216,13 @@
                 Clear Filters
             </button>
         </div>
+
+        <!-- Load More Button -->
+        <div x-show="!loading && deals.length > 0 && displayedDeals.length < deals.length" class="text-center mt-12" x-cloak>
+            <button @click="loadMore()" class="bg-cruise-600 text-white px-8 py-3 rounded-lg hover:bg-cruise-700 transition text-lg font-medium">
+                Load More Deals (<span x-text="deals.length - displayedDeals.length"></span> remaining)
+            </button>
+        </div>
     </section>
 </div>
 
@@ -223,6 +230,7 @@
     function dealsPage() {
         return {
             deals: [],
+            displayedCount: 24, // Show 24 deals initially
             totalDeals: 0,
             loading: true,
             filters: {
@@ -235,9 +243,18 @@
                 sortBy: 'price_per_day:ASC'
             },
 
+            get displayedDeals() {
+                return this.deals.slice(0, this.displayedCount);
+            },
+
+            loadMore() {
+                this.displayedCount += 24; // Load 24 more deals
+            },
+
             async loadDeals() {
                 try {
                     this.loading = true;
+                    this.displayedCount = 24; // Reset to initial count
                     
                     const params = new URLSearchParams();
                     if (this.filters.maxPrice) params.append('max_price_per_day', this.filters.maxPrice);
