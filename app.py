@@ -351,6 +351,10 @@ async def get_deal(deal_id: int, db: AsyncSession = Depends(get_db)):
             "url": deal.url,
             "special_offers": deal.special_offers,
             "image_url": deal.image_url,
+            "cabin_details": deal.cabin_details,
+            "itinerary": deal.itinerary,
+            "ship_details": deal.ship_details,
+            "inclusions": deal.inclusions,
             "scraped_at": deal.scraped_at.isoformat(),
         }
     }
