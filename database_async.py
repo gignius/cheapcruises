@@ -123,6 +123,8 @@ class CruiseDealRepository:
         max_price_per_day: Optional[float] = None,
         cruise_line: Optional[str] = None,
         departure_port: Optional[str] = None,
+        arrival_port: Optional[str] = None,
+        region: Optional[str] = None,
         min_duration: Optional[int] = None,
         max_duration: Optional[int] = None,
         sort_by: str = "price_per_day",
@@ -141,6 +143,12 @@ class CruiseDealRepository:
         
         if departure_port:
             query = query.where(CruiseDealDB.departure_port.ilike(f"%{departure_port}%"))
+        
+        if arrival_port:
+            query = query.where(CruiseDealDB.destination.ilike(f"%{arrival_port}%"))
+        
+        if region:
+            query = query.where(CruiseDealDB.destination.ilike(f"%{region}%"))
         
         if min_duration:
             query = query.where(CruiseDealDB.duration_days >= min_duration)

@@ -15,7 +15,7 @@
     <!-- Filters Section -->
     <section class="bg-white shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <!-- Max Price Filter -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Max Price/Night</label>
@@ -26,6 +26,23 @@
                         <option value="150">Under $150</option>
                         <option value="200">Under $200</option>
                         <option value="300">Under $300</option>
+                    </select>
+                </div>
+
+                <!-- Region Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Region</label>
+                    <select x-model="filters.region" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="">All Regions</option>
+                        <option value="Australia">Australia</option>
+                        <option value="New Zealand">New Zealand</option>
+                        <option value="South Pacific">South Pacific</option>
+                        <option value="Caribbean">Caribbean</option>
+                        <option value="Alaska">Alaska</option>
+                        <option value="Mediterranean">Mediterranean</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Asia">Asia</option>
+                        <option value="USA">USA</option>
                     </select>
                 </div>
 
@@ -65,8 +82,31 @@
                         <option value="Sydney">Sydney</option>
                         <option value="Brisbane">Brisbane</option>
                         <option value="Melbourne">Melbourne</option>
+                        <option value="Adelaide">Adelaide</option>
+                        <option value="Perth">Perth</option>
+                        <option value="Auckland">Auckland</option>
+                        <option value="Singapore">Singapore</option>
                         <option value="Miami">Miami</option>
                         <option value="Fort Lauderdale">Fort Lauderdale</option>
+                        <option value="Vancouver">Vancouver</option>
+                        <option value="Barcelona">Barcelona</option>
+                        <option value="Rome">Rome</option>
+                    </select>
+                </div>
+
+                <!-- Arrival Port Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Arrival Port</label>
+                    <select x-model="filters.arrivalPort" @change="loadDeals()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cruise-500 focus:border-cruise-500">
+                        <option value="">All Ports</option>
+                        <option value="Sydney">Sydney</option>
+                        <option value="Brisbane">Brisbane</option>
+                        <option value="Melbourne">Melbourne</option>
+                        <option value="Auckland">Auckland</option>
+                        <option value="Singapore">Singapore</option>
+                        <option value="Noumea">Noumea</option>
+                        <option value="Port Vila">Port Vila</option>
+                        <option value="Honolulu">Honolulu</option>
                     </select>
                 </div>
 
@@ -85,7 +125,7 @@
 
             <div class="mt-4 flex items-center justify-between">
                 <p class="text-sm text-gray-600">
-                    Showing <span x-text="deals.length"></span> deals
+                    Showing <span x-text="deals.length"></span> of <span x-text="totalDeals"></span> deals
                 </p>
                 <button @click="clearFilters()" class="text-sm text-cruise-600 hover:text-cruise-700 font-medium">
                     Clear Filters
@@ -183,11 +223,14 @@
     function dealsPage() {
         return {
             deals: [],
+            totalDeals: 0,
             loading: true,
             filters: {
                 maxPrice: '',
+                region: '',
                 cruiseLine: '',
                 departurePort: '',
+                arrivalPort: '',
                 duration: '',
                 sortBy: 'price_per_day:ASC'
             },
@@ -200,6 +243,8 @@
                     if (this.filters.maxPrice) params.append('max_price_per_day', this.filters.maxPrice);
                     if (this.filters.cruiseLine) params.append('cruise_line', this.filters.cruiseLine);
                     if (this.filters.departurePort) params.append('departure_port', this.filters.departurePort);
+                    if (this.filters.arrivalPort) params.append('arrival_port', this.filters.arrivalPort);
+                    if (this.filters.region) params.append('region', this.filters.region);
                     
                     // Duration filter
                     if (this.filters.duration) {
@@ -211,13 +256,14 @@
                     const [sortBy, order] = this.filters.sortBy.split(':');
                     params.append('sort_by', sortBy);
                     params.append('order', order);
-                    params.append('limit', '100');
+                    params.append('limit', '10000'); // Show all deals
                     
                     const response = await fetch(`/api/deals?${params.toString()}`);
                     const data = await response.json();
                     
                     if (data.success) {
                         this.deals = data.deals;
+                        this.totalDeals = data.total || data.deals.length;
                     }
                 } catch (error) {
                     console.error('Error loading deals:', error);
@@ -229,8 +275,10 @@
             clearFilters() {
                 this.filters = {
                     maxPrice: '',
+                    region: '',
                     cruiseLine: '',
                     departurePort: '',
+                    arrivalPort: '',
                     duration: '',
                     sortBy: 'price_per_day:ASC'
                 };

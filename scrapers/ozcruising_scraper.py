@@ -29,17 +29,28 @@ class OzCruisingScraper(BaseScraper):
                 self.BASE_URL,  # Homepage featured deals
                 f"{self.BASE_URL}/cruise-specials",  # Special deals
                 f"{self.BASE_URL}/last-minute-cruises",  # Last minute deals
+                f"{self.BASE_URL}/deals",  # Main deals page
                 
-                # Australian Ports
+                # Australian Ports (expanded)
                 f"{self.BASE_URL}/cheap-cruises-from-sydney",
                 f"{self.BASE_URL}/cheap-cruises-from-brisbane",
                 f"{self.BASE_URL}/cheap-cruises-from-melbourne",
                 f"{self.BASE_URL}/cheap-cruises-from-perth",
                 f"{self.BASE_URL}/cheap-cruises-from-adelaide",
+                f"{self.BASE_URL}/cheap-cruises-from-fremantle",
+                f"{self.BASE_URL}/cheap-cruises-from-hobart",
+                f"{self.BASE_URL}/cheap-cruises-from-darwin",
                 
-                # International Ports
+                # International Ports (expanded)
                 f"{self.BASE_URL}/cheap-cruises-from-auckland",
                 f"{self.BASE_URL}/cheap-cruises-from-singapore",
+                f"{self.BASE_URL}/cheap-cruises-from-hong-kong",
+                f"{self.BASE_URL}/cheap-cruises-from-tokyo",
+                f"{self.BASE_URL}/cheap-cruises-from-vancouver",
+                f"{self.BASE_URL}/cheap-cruises-from-miami",
+                f"{self.BASE_URL}/cheap-cruises-from-southampton",
+                f"{self.BASE_URL}/cheap-cruises-from-rome",
+                f"{self.BASE_URL}/cheap-cruises-from-barcelona",
                 
                 # All Cruise Lines (comprehensive)
                 f"{self.BASE_URL}/searchcruise/bysearchbar/17/-111/-111/-111/true/-111/-111/-111/-111",  # Carnival
@@ -54,18 +65,27 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/searchcruise/bysearchbar/18/-111/-111/-111/true/-111/-111/-111/-111/all/-111-bold",  # Seabourn
                 f"{self.BASE_URL}/searchcruise/bysearchbar/47/-111/-111/-111/true/-111/-111/-111/-111/all/-111-bold",  # Viking
                 f"{self.BASE_URL}/searchcruise/bysearchbar/azamaraclubcruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Azamara
+                f"{self.BASE_URL}/searchcruise/bysearchbar/silversea-cruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Silversea
+                f"{self.BASE_URL}/searchcruise/bysearchbar/oceania-cruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Oceania
                 
-                # Popular Destinations (worldwide coverage)
+                # Popular Destinations (worldwide coverage - expanded)
                 f"{self.BASE_URL}/caribbean-cruises",
                 f"{self.BASE_URL}/alaska-cruises",
                 f"{self.BASE_URL}/mediterranean-cruises",
                 f"{self.BASE_URL}/europe-cruises",
                 f"{self.BASE_URL}/south-pacific-cruises",
                 f"{self.BASE_URL}/asia-cruises",
+                f"{self.BASE_URL}/new-zealand-cruises",
+                f"{self.BASE_URL}/hawaii-cruises",
+                f"{self.BASE_URL}/transatlantic-cruises",
+                f"{self.BASE_URL}/world-cruises",
+                f"{self.BASE_URL}/australia-cruises",
+                f"{self.BASE_URL}/scandinavia-cruises",
+                f"{self.BASE_URL}/canada-cruises",
             ]
             
-            # Scrape simple pages (homepage, specials)
-            simple_pages = pages_to_scrape[:10]  # First 10 are non-paginated
+            # Scrape simple pages (homepage, specials, ports)
+            simple_pages = pages_to_scrape[:22]  # First 22 are non-paginated (homepage, specials, ports)
             for page_url in simple_pages:
                 logger.debug(f"Scraping: {page_url}")
                 soup = self.get_page(page_url)
@@ -73,13 +93,13 @@ class OzCruisingScraper(BaseScraper):
                     self._parse_page(soup)
             
             # Scrape cruise line pages WITH PAGINATION (get ALL deals!)
-            cruise_line_pages = pages_to_scrape[10:22]  # Cruise line search pages
+            cruise_line_pages = pages_to_scrape[22:36]  # Cruise line search pages
             for page_url in cruise_line_pages:
                 logger.debug(f"Scraping with pagination: {page_url}")
-                self._scrape_with_pagination(page_url, max_pages=3)  # Limit to 3 pages - pagination shows same deals repeatedly
+                self._scrape_with_pagination(page_url, max_pages=5)  # Increased to 5 pages for more coverage
             
             # Scrape destination pages
-            destination_pages = pages_to_scrape[22:]  # Last 6 are destinations
+            destination_pages = pages_to_scrape[36:]  # Remaining are destinations
             for page_url in destination_pages:
                 logger.debug(f"Scraping: {page_url}")
                 soup = self.get_page(page_url)
