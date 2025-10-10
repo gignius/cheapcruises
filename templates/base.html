@@ -5,6 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CheapCruises.au - Find Amazing Cruise Deals{% endblock %}</title>
     
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Find the best cruise deals in Australia. Compare prices from 11 major cruise lines including Royal Caribbean, Carnival, Princess, and more. Cruises from Sydney, Brisbane, Melbourne and worldwide destinations.">
+    <meta name="keywords" content="cruise deals, cheap cruises, cruise australia, cruise deals australia, royal caribbean, carnival cruises, princess cruises">
+    <meta name="author" content="CheapCruises.au">
+    
+    <!-- Open Graph / Facebook / LinkedIn / Slack / Discord -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cheapcruises.au{% block og_url %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}CheapCruises.au - Find Amazing Cruise Deals in Australia{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Compare cruise deals from 11 major cruise lines. Find the perfect cruise departing from Sydney, Brisbane, Melbourne and worldwide destinations. Updated daily with the latest deals.{% endblock %}">
+    <meta property="og:image" content="https://cheapcruises.au{% block og_image %}/static/og-image.jpg{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="CheapCruises.au">
+    <meta property="og:locale" content="en_AU">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://cheapcruises.au{% block twitter_url %}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}CheapCruises.au - Find Amazing Cruise Deals{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Compare cruise deals from 11 major cruise lines. Find cruises from Australia and worldwide destinations.{% endblock %}">
+    <meta name="twitter:image" content="https://cheapcruises.au{% block twitter_image %}/static/og-image.jpg{% endblock %}">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#0284c7">
+    <link rel="canonical" href="https://cheapcruises.au{% block canonical %}{% endblock %}">
+    
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TECS30LLBP"></script>
     <script>

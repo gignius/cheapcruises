@@ -2,6 +2,10 @@
 
 {% block title %}Cruise Details | CheapCruises.au{% endblock %}
 
+{% block og_url %}/cruise/{{ cruise_id }}{% endblock %}
+{% block twitter_url %}/cruise/{{ cruise_id }}{% endblock %}
+{% block canonical %}/cruise/{{ cruise_id }}{% endblock %}
+
 {% block content %}
 <div x-data="cruiseDetailPage({{ cruise_id }})" x-init="loadCruise()"  x-cloak>
     <!-- Loading State -->
