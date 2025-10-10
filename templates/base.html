@@ -36,7 +36,20 @@
     
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50" x-data="{ currency: 'AUD' }">
+<body class="bg-gray-50" x-data="appData()" x-init="init()">
+    <script>
+        function appData() {
+            return {
+                currency: 'AUD',
+                init() {
+                    // Watch for currency changes and dispatch event to notify child components
+                    this.$watch('currency', (value) => {
+                        window.dispatchEvent(new CustomEvent('currency-changed', { detail: { currency: value } }));
+                    });
+                }
+            }
+        }
+    </script>
     <!-- Navigation -->
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
