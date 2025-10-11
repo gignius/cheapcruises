@@ -177,6 +177,7 @@ async def cruise_detail_page(request: Request, cruise_id: int):
 @app.get("/api/deals")
 async def get_deals(
     max_price_per_day: Optional[float] = Query(None, description="Maximum price per day"),
+    min_price_per_day: Optional[float] = Query(None, description="Minimum price per day (filters false positives)"),
     cruise_line: Optional[str] = Query(None, description="Filter by cruise line"),
     departure_port: Optional[str] = Query(None, description="Filter by departure port"),
     arrival_port: Optional[str] = Query(None, description="Filter by arrival port"),
@@ -193,6 +194,7 @@ async def get_deals(
     repo = CruiseDealRepository(db)
     deals = await repo.get_all(
         max_price_per_day=max_price_per_day,
+        min_price_per_day=min_price_per_day,
         cruise_line=cruise_line,
         departure_port=departure_port,
         arrival_port=arrival_port,

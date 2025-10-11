@@ -257,6 +257,8 @@
                     this.displayedCount = 24; // Reset to initial count
                     
                     const params = new URLSearchParams();
+                    // Filter out false positives (deposits showing as cruise prices)
+                    params.append('min_price_per_day', '30');
                     if (this.filters.maxPrice) params.append('max_price_per_day', this.filters.maxPrice);
                     if (this.filters.cruiseLine) params.append('cruise_line', this.filters.cruiseLine);
                     if (this.filters.departurePort) params.append('departure_port', this.filters.departurePort);

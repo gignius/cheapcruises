@@ -242,6 +242,9 @@
             get currentDeals() {
                 let filtered = this.allDeals;
                 
+                // Filter out false positives (deposits showing as cruise prices)
+                filtered = filtered.filter(d => d.price_per_day >= 30);
+                
                 // Filter by price threshold
                 if (this.selectedThreshold < 999999) {
                     filtered = filtered.filter(d => d.price_per_day <= this.selectedThreshold);

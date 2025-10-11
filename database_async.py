@@ -121,6 +121,7 @@ class CruiseDealRepository:
     async def get_all(
         self,
         max_price_per_day: Optional[float] = None,
+        min_price_per_day: Optional[float] = None,
         cruise_line: Optional[str] = None,
         departure_port: Optional[str] = None,
         arrival_port: Optional[str] = None,
@@ -134,6 +135,9 @@ class CruiseDealRepository:
     ):
         """Get all deals with filters"""
         query = select(CruiseDealDB).where(CruiseDealDB.is_active.is_(True))
+        
+        if min_price_per_day:
+            query = query.where(CruiseDealDB.price_per_day >= min_price_per_day)
         
         if max_price_per_day:
             query = query.where(CruiseDealDB.price_per_day <= max_price_per_day)
