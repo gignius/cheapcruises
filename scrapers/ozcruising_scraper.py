@@ -1,4 +1,4 @@
-ke"""Scraper for ozcruising.com.au"""
+"""Scraper for ozcruising.com.au"""
 import re
 from datetime import datetime
 from typing import List, Optional
@@ -9,10 +9,10 @@ from loguru import logger
 
 class OzCruisingScraper(BaseScraper):
     """Scraper for OzCruising website"""
-
+    
     BASE_URL = "https://www.ozcruising.com.au"
     SEARCH_URL = f"{BASE_URL}/deals"
-
+    
     @property
     def name(self) -> str:
         return "OzCruising.com.au"
@@ -21,7 +21,7 @@ class OzCruisingScraper(BaseScraper):
         """Scrape cruise deals from OzCruising"""
         logger.info(f"Starting scrape of {self.name}")
         self.deals = []
-
+        
         try:
             # Scrape multiple pages for more deals - EXPANDED COVERAGE
             pages_to_scrape = [
@@ -30,7 +30,7 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/cruise-specials",  # Special deals
                 f"{self.BASE_URL}/last-minute-cruises",  # Last minute deals
                 f"{self.BASE_URL}/deals",  # Main deals page
-
+                
                 # Australian Ports (expanded)
                 f"{self.BASE_URL}/cheap-cruises-from-sydney",
                 f"{self.BASE_URL}/cheap-cruises-from-brisbane",
@@ -40,7 +40,7 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/cheap-cruises-from-fremantle",
                 f"{self.BASE_URL}/cheap-cruises-from-hobart",
                 f"{self.BASE_URL}/cheap-cruises-from-darwin",
-
+                
                 # International Ports (expanded)
                 f"{self.BASE_URL}/cheap-cruises-from-auckland",
                 f"{self.BASE_URL}/cheap-cruises-from-singapore",
@@ -51,7 +51,7 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/cheap-cruises-from-southampton",
                 f"{self.BASE_URL}/cheap-cruises-from-rome",
                 f"{self.BASE_URL}/cheap-cruises-from-barcelona",
-
+                
                 # All Cruise Lines (comprehensive)
                 f"{self.BASE_URL}/searchcruise/bysearchbar/17/-111/-111/-111/true/-111/-111/-111/-111",  # Carnival
                 f"{self.BASE_URL}/searchcruise/bysearchbar/5/-111/-111/-111/true/-111/-111/-111/-111/all-bold",  # Royal Caribbean
@@ -67,7 +67,7 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/searchcruise/bysearchbar/azamaraclubcruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Azamara
                 f"{self.BASE_URL}/searchcruise/bysearchbar/silversea-cruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Silversea
                 f"{self.BASE_URL}/searchcruise/bysearchbar/oceania-cruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Oceania
-
+                
                 # Popular Destinations (worldwide coverage - expanded)
                 f"{self.BASE_URL}/caribbean-cruises",
                 f"{self.BASE_URL}/alaska-cruises",
@@ -83,7 +83,7 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/scandinavia-cruises",
                 f"{self.BASE_URL}/canada-cruises",
             ]
-
+            
             # Scrape simple pages (homepage, specials, ports)
             simple_pages = pages_to_scrape[:22]  # First 22 are non-paginated (homepage, specials, ports)
             for page_url in simple_pages:
@@ -91,13 +91,13 @@ class OzCruisingScraper(BaseScraper):
                 soup = self.get_page(page_url)
                 if soup:
                     self._parse_page(soup)
-
+            
             # Scrape cruise line pages WITH PAGINATION (get ALL deals!)
             cruise_line_pages = pages_to_scrape[22:36]  # Cruise line search pages
             for page_url in cruise_line_pages:
                 logger.debug(f"Scraping with pagination: {page_url}")
                 self._scrape_with_pagination(page_url, max_pages=5)  # Increased to 5 pages for more coverage
-
+            
             # Scrape destination pages
             destination_pages = pages_to_scrape[36:]  # Remaining are destinations
             for page_url in destination_pages:
@@ -105,39 +105,39 @@ class OzCruisingScraper(BaseScraper):
                 soup = self.get_page(page_url)
                 if soup:
                     self._parse_page(soup)
-
+            
             logger.info(f"Enriching {len(self.deals)} deals with images from detail pages...")
             self._enrich_deals_with_images()
-
+            
             logger.success(f"Successfully scraped {len(self.deals)} deals from {self.name}")
-
+            
         except Exception as e:
             logger.error(f"Error scraping {self.name}: {e}", exc_info=True)
-
+        
         return self.deals
-
+    
     def _scrape_with_pagination(self, base_url: str, max_pages: int = 100):
         """Scrape a URL with pagination support"""
         page_num = 1
         consecutive_empty_pages = 0
-
+        
         while page_num <= max_pages:
             # Construct paginated URL
             if '?' in base_url:
                 url = f"{base_url}&page={page_num}"
             else:
                 url = f"{base_url}?page={page_num}"
-
+            
             logger.debug(f"Page {page_num}: {url[:80]}...")
             soup = self.get_page(url)
-
+            
             if not soup:
                 logger.warning(f"Failed to fetch page {page_num}")
                 break
-
+            
             # Count cruise details links on this page (before deduplication)
             cruise_links_on_page = soup.find_all('a', string=re.compile(r'View\s+Cruise\s+Details', re.I))
-
+            
             if len(cruise_links_on_page) == 0:
                 # No cruises at all on this page
                 consecutive_empty_pages += 1
@@ -146,29 +146,29 @@ class OzCruisingScraper(BaseScraper):
                     break
                 page_num += 1
                 continue
-
+            
             # Parse this page
             deals_before = len(self.deals)
             self._parse_page(soup)
             deals_found = len(self.deals) - deals_before
-
+            
             logger.debug(f"Page {page_num}: {len(cruise_links_on_page)} cruises found, {deals_found} new deals after dedup")
-
+            
             # Continue even if we didn't find new deals (might be duplicates, but next page might have new ones)
             consecutive_empty_pages = 0
             page_num += 1
-
+    
     def _parse_page(self, soup):
         """Parse a single page for deals"""
         try:
             # OzCruising displays deals with cruise line images and "View Cruise Details" links
             # Look for links that say "View Cruise Details"
             deal_links = soup.find_all('a', string=re.compile(r'View\s+Cruise\s+Details', re.I))
-
+            
             if not deal_links:
                 # Try alternative: look for divs containing cruise information
                 logger.warning("No 'View Cruise Details' links found, trying alternative selectors")
-
+                
                 # Try to find parent containers of links
                 all_links = soup.find_all('a', href=re.compile(r'cruise', re.I))
                 deal_containers = []
@@ -180,13 +180,13 @@ class OzCruisingScraper(BaseScraper):
                         text = parent.get_text()
                         if ('From $' in text or 'pp' in text) and ('Night' in text or 'Days' in text):
                             deal_containers.append(parent)
-
+                
                 if not deal_containers:
                     logger.warning("No deal containers found - website structure may have changed")
                     return
-
+                    
                 logger.info(f"Found {len(deal_containers)} potential deals via alternative method")
-
+                
                 for container in deal_containers:
                     try:
                         deal = self._parse_deal(container)
@@ -204,12 +204,12 @@ class OzCruisingScraper(BaseScraper):
                         # The actual deal card is usually several levels up
                         container = link
                         best_container = None
-
+                        
                         for level in range(15):  # Try going up 15 levels
                             container = container.find_parent()
                             if not container:
                                 break
-
+                            
                             # Count elements that suggest this is a deal container
                             text = container.get_text()
                             has_price = '$' in text and 'From' in text
@@ -217,9 +217,9 @@ class OzCruisingScraper(BaseScraper):
                             has_ship = any(ship_word in text for ship_word in ['Anthem', 'Voyager', 'Quantum', 'Carnival', 'Princess', 'Spirit', 'Edge', 'Encounter', 'Adventure', 'Splendor'])
                             has_departing = 'Departing' in text
                             has_destination = any(dest in text for dest in ['Eden', 'New Zealand', 'Pacific', 'Queensland', 'Vanuatu', 'Singapore', 'Alaska', 'Hawaii'])
-
+                            
                             score = sum([has_price, has_duration, has_ship, has_departing])
-
+                            
                             # We want a container with all key elements
                             if score >= 4:
                                 best_container = container
@@ -233,7 +233,7 @@ class OzCruisingScraper(BaseScraper):
                                     'Departing' in best_container.get_text()
                                 ]):
                                     best_container = container
-
+                        
                         if best_container:
                             deal = self._parse_deal(best_container)
                             if deal and not self._is_duplicate(deal):
@@ -249,13 +249,13 @@ class OzCruisingScraper(BaseScraper):
         try:
             # Get all text from container for easier searching
             full_text = container.get_text(separator=' ', strip=True)
-
+            
             # Extract cruise line from image alt text or class names
             cruise_line = "Unknown"
             img = container.find('img')
             if img and img.get('alt'):
                 cruise_line = img.get('alt', '')
-
+            
             # Clean up cruise line name
             if 'carnival' in cruise_line.lower():
                 cruise_line = 'Carnival'
@@ -277,7 +277,7 @@ class OzCruisingScraper(BaseScraper):
                 cruise_line = 'Azamara'
             elif 'virgin' in cruise_line.lower():
                 cruise_line = 'Virgin Voyages'
-
+            
             # Extract ship name - look for text near fa-ship icon
             ship_name = "Unknown"
             # Find div with fa-ship class
@@ -289,7 +289,7 @@ class OzCruisingScraper(BaseScraper):
                     ship_text = ship_div.get_text(strip=True)
                     # Clean up the ship name
                     ship_name = ship_text.strip()
-
+            
             # If not found, try regex patterns
             if ship_name == "Unknown":
                 ship_patterns = [
@@ -306,7 +306,7 @@ class OzCruisingScraper(BaseScraper):
                     if ship_match:
                         ship_name = ship_match.group(1)
                         break
-
+            
             # Extract destination - usually the title/heading
             destination = "Various"
             # Look for bold/heading text
@@ -317,20 +317,20 @@ class OzCruisingScraper(BaseScraper):
                     if dest_text and len(dest_text) < 50:  # Reasonable destination length
                         destination = dest_text
                         break
-
+            
             # Extract departure port - look for "Departing X" pattern
             departure_port = "Various Ports"
             port_match = re.search(r'Departing\s+([\w\s]+?)(?:\s+Cruise|\s+\d|\s+Twin|\s+Quad|$)', full_text, re.IGNORECASE)
             if port_match:
                 departure_port = port_match.group(1).strip()
-
+            
             # Extract cabin type - default to Interior, could be Twin/Quad
             cabin_type = "Interior"
             if 'Twin' in full_text:
                 cabin_type = "Twin"
             elif 'Quad' in full_text:
                 cabin_type = "Quad"
-
+            
             # Extract price - look for "From $XXX pp" or "Twin From $XXX"
             total_price = 0.0
             price_patterns = [
@@ -343,13 +343,13 @@ class OzCruisingScraper(BaseScraper):
                 if price_match:
                     total_price = float(price_match.group(1).replace(',', ''))
                     break
-
+            
             # Extract duration - look for "X Nights" pattern
             duration = 0
             duration_match = re.search(r'(\d+)\s*Nights?', full_text, re.IGNORECASE)
             if duration_match:
                 duration = int(duration_match.group(1))
-
+            
             # Extract date - look for date patterns
             departure_date = datetime.now()
             date_patterns = [
@@ -371,10 +371,10 @@ class OzCruisingScraper(BaseScraper):
                         break
                     except:
                         pass
-
+            
             # Extract URL
             url = self._extract_url(container)
-
+            
             # Extract special offers
             special_offers = ""
             if 'Bonus:' in full_text:
@@ -383,13 +383,13 @@ class OzCruisingScraper(BaseScraper):
                     special_offers = bonus_match.group(1).strip()
             elif 'Sale' in full_text:
                 special_offers = "Sale Fares"
-
+            
             # Skip if missing critical data
             if not total_price or not duration:
                 return None
-
+            
             price_per_day = total_price / duration if duration > 0 else float('inf')
-
+            
             return CruiseDeal(
                 cruise_line=cruise_line,
                 ship_name=ship_name,
@@ -416,12 +416,12 @@ class OzCruisingScraper(BaseScraper):
             elem = container.find(class_=re.compile(pattern, re.I))
             if elem:
                 return elem.get_text(strip=True)
-
+            
             # Try data attribute match
             elem = container.find(attrs={f'data-{pattern}': True})
             if elem:
                 return elem.get(f'data-{pattern}', '') or elem.get_text(strip=True)
-
+        
         return ""
 
     def _extract_price(self, text: str) -> float:
@@ -452,14 +452,14 @@ class OzCruisingScraper(BaseScraper):
         """Extract date from text"""
         if not text:
             return datetime.now()
-
+        
         # Try various date formats
         patterns = [
             r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})',  # 15 January 2025
             r'(\d{1,2})/(\d{1,2})/(\d{4})',         # 15/01/2025
             r'(\d{4})-(\d{2})-(\d{2})',             # 2025-01-15
         ]
-
+        
         for pattern in patterns:
             match = re.search(pattern, text)
             if match:
@@ -473,7 +473,7 @@ class OzCruisingScraper(BaseScraper):
                             return datetime.strptime(match.group(0), '%d %B %Y')
                 except:
                     pass
-
+        
         return datetime.now()
 
     def _extract_url(self, container) -> str:
@@ -486,7 +486,7 @@ class OzCruisingScraper(BaseScraper):
                 return href
             else:
                 return f"{self.BASE_URL}{href if href.startswith('/') else '/' + href}"
-
+        
         # Second priority: find any link with cruise-related href
         cruise_links = container.find_all('a', href=re.compile(r'/(cruise|sailing|itinerary)', re.I))
         if cruise_links:
@@ -498,7 +498,7 @@ class OzCruisingScraper(BaseScraper):
                         return href
                     else:
                         return f"{self.BASE_URL}{href if href.startswith('/') else '/' + href}"
-
+        
         # Fall back to any link
         link = container.find('a', href=True)
         if link:
@@ -507,9 +507,9 @@ class OzCruisingScraper(BaseScraper):
                 return href
             else:
                 return f"{self.BASE_URL}{href if href.startswith('/') else '/' + href}"
-
+        
         return self.BASE_URL
-
+    
     def _is_duplicate(self, new_deal: CruiseDeal) -> bool:
         """Check if deal already exists in the list"""
         for deal in self.deals:
@@ -520,12 +520,12 @@ class OzCruisingScraper(BaseScraper):
                 deal.duration_days == new_deal.duration_days):
                 return True
         return False
-
+    
     def _enrich_deals_with_images(self):
         """Enrich deals by visiting detail pages to extract images and detailed info"""
         import time
         import json
-
+        
         for i, deal in enumerate(self.deals):
             try:
                 soup = self.get_page(deal.url)
@@ -535,32 +535,32 @@ class OzCruisingScraper(BaseScraper):
                         image_url = self._extract_cruise_image(soup)
                         if image_url:
                             deal.image_url = image_url
-
+                    
                     # Extract detailed information
                     itinerary = self._extract_itinerary(soup)
                     if itinerary:
                         deal.itinerary = json.dumps(itinerary)
-
+                    
                     cabin_details = self._extract_cabin_details(soup)
                     if cabin_details:
                         deal.cabin_details = json.dumps(cabin_details)
-
+                    
                     inclusions = self._extract_inclusions(soup)
                     if inclusions:
                         deal.inclusions = json.dumps(inclusions)
-
+                    
                     logger.debug(f"Enriched deal {i+1}/{len(self.deals)}")
-
+                
                 if (i + 1) % 50 == 0:
                     logger.info(f"Enriched {i+1}/{len(self.deals)} deals with details")
                     time.sleep(1)
                 elif (i + 1) % 10 == 0:
                     time.sleep(0.5)
-
+                    
             except Exception as e:
                 logger.warning(f"Failed to enrich deal {i+1}: {e}")
                 continue
-
+    
     def _extract_cruise_image(self, soup) -> Optional[str]:
         """Extract the main cruise image from a detail page"""
         for img in soup.find_all('img'):
@@ -573,12 +573,12 @@ class OzCruisingScraper(BaseScraper):
                 else:
                     return f"{self.BASE_URL}{src if src.startswith('/') else '/' + src}"
         return None
-
+    
     def _extract_itinerary(self, soup) -> Optional[List[dict]]:
         """Extract itinerary information from detail page"""
         try:
             itinerary = []
-
+            
             # Look for itinerary table or list
             # OzCruising usually has itinerary in a structured format
             itinerary_section = soup.find(['div', 'section'], class_=re.compile(r'itinerary', re.I))
@@ -587,25 +587,25 @@ class OzCruisingScraper(BaseScraper):
                     if 'itinerary' in elem.get_text().lower():
                         itinerary_section = elem.find_parent(['div', 'section'])
                         break
-
+            
             if itinerary_section:
                 # Look for table rows or list items with port information
                 rows = itinerary_section.find_all(['tr', 'li', 'div'])
-
+                
                 for row in rows:
                     text = row.get_text(separator=' ', strip=True)
-
+                    
                     if not text or len(text) < 5:
                         continue
-
+                    
                     # Try to extract port information
                     port_info = {}
-
+                    
                     # Extract day number
                     day_match = re.search(r'Day\s+(\d+)', text, re.I)
                     if day_match:
                         port_info['day'] = int(day_match.group(1))
-
+                    
                     # Extract port name
                     # Look for port names (usually after "Port:" or after day number)
                     port_match = re.search(r'(?:Port:|Day\s+\d+:?)\s*([A-Za-z\s,]+?)(?:\s*-|\s*\(|$)', text, re.I)
@@ -615,31 +615,31 @@ class OzCruisingScraper(BaseScraper):
                         parts = text.split(':', 1)
                         if len(parts) > 1:
                             port_info['port'] = parts[1].strip()
-
+                    
                     # Extract times if present
                     arrival_match = re.search(r'Arrive[sd]?:?\s*(\d{1,2}:\d{2}|\d{1,2}\s*[AP]M)', text, re.I)
                     if arrival_match:
                         port_info['arrival'] = arrival_match.group(1)
-
+                    
                     departure_match = re.search(r'Depart[s]?:?\s*(\d{1,2}:\d{2}|\d{1,2}\s*[AP]M)', text, re.I)
                     if departure_match:
                         port_info['departure'] = departure_match.group(1)
-
+                    
                     if port_info.get('port'):
                         port_info['description'] = text[:200]  # Limit description length
                         itinerary.append(port_info)
-
+            
             return itinerary if itinerary else None
-
+            
         except Exception as e:
             logger.warning(f"Error extracting itinerary: {e}")
             return None
-
+    
     def _extract_cabin_details(self, soup) -> Optional[List[dict]]:
         """Extract cabin pricing and availability from detail page"""
         try:
             cabins = []
-
+            
             # Look for cabin pricing section
             cabin_section = soup.find(['div', 'section', 'table'], class_=re.compile(r'cabin|pricing|fare', re.I))
             if not cabin_section:
@@ -647,47 +647,47 @@ class OzCruisingScraper(BaseScraper):
                     if any(word in elem.get_text().lower() for word in ['cabin', 'pricing', 'fares', 'stateroom']):
                         cabin_section = elem.find_parent(['div', 'section', 'table'])
                         break
-
+            
             if cabin_section:
                 # Look for rows with cabin types and prices
                 rows = cabin_section.find_all(['tr', 'div'])
-
+                
                 for row in rows:
                     text = row.get_text(separator=' ', strip=True)
-
+                    
                     # Look for cabin types
                     cabin_types = ['Interior', 'Oceanview', 'Balcony', 'Suite', 'Twin', 'Quad']
                     cabin_info = {}
-
+                    
                     for cabin_type in cabin_types:
                         if cabin_type.lower() in text.lower():
                             cabin_info['type'] = cabin_type
                             break
-
+                    
                     if cabin_info.get('type'):
                         # Extract price
                         price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)', text)
                         if price_match:
                             cabin_info['price_pp'] = float(price_match.group(1).replace(',', ''))
-
+                        
                         if any(word in text.lower() for word in ['available', 'book now']):
                             cabin_info['available'] = True
                         elif any(word in text.lower() for word in ['sold out', 'unavailable']):
                             cabin_info['available'] = False
-
+                        
                         cabins.append(cabin_info)
-
+            
             return cabins if cabins else None
-
+            
         except Exception as e:
             logger.warning(f"Error extracting cabin details: {e}")
             return None
-
+    
     def _extract_inclusions(self, soup) -> Optional[List[str]]:
         """Extract what's included in the cruise fare"""
         try:
             inclusions = []
-
+            
             # Look for inclusions section
             inclusion_section = soup.find(['div', 'section', 'ul'], class_=re.compile(r'inclusion|include|whats.included', re.I))
             if not inclusion_section:
@@ -699,7 +699,7 @@ class OzCruisingScraper(BaseScraper):
                             # Look for next sibling
                             inclusion_section = elem.find_next_sibling(['div', 'ul', 'section'])
                         break
-
+            
             if inclusion_section:
                 # Extract list items
                 items = inclusion_section.find_all(['li', 'p'])
@@ -708,7 +708,7 @@ class OzCruisingScraper(BaseScraper):
                     if text and len(text) > 3 and len(text) < 200:
                         if not any(skip in text.lower() for skip in ['click here', 'read more', 'terms', 'conditions']):
                             inclusions.append(text)
-
+            
             if not inclusions:
                 inclusions = [
                     "Accommodation onboard",
@@ -716,9 +716,9 @@ class OzCruisingScraper(BaseScraper):
                     "Entertainment and activities",
                     "Port fees and taxes"
                 ]
-
+            
             return inclusions if inclusions else None
-
+            
         except Exception as e:
             logger.warning(f"Error extracting inclusions: {e}")
             return None
