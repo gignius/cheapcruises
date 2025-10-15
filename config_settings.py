@@ -37,6 +37,8 @@ class Settings(BaseSettings):
     sender_password: Optional[str] = None
     recipient_email: Optional[str] = None
     
+    anthropic_api_key: Optional[str] = None
+    
     # Security
     secret_key: Optional[str] = None
     

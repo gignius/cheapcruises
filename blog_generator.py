@@ -35,9 +35,10 @@ class CruiseBlogGenerator:
     """Generate SEO-optimized cruise blog articles using Claude AI"""
     
     def __init__(self):
-        api_key = os.getenv('ANTHROPIC_API_KEY')
+        from config_settings import settings
+        api_key = settings.anthropic_api_key
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+            raise ValueError("ANTHROPIC_API_KEY not configured in settings")
         self.client = anthropic.Anthropic(api_key=api_key)
         
     def generate_slug(self, title: str) -> str:
