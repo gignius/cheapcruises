@@ -77,35 +77,35 @@ class PricingScraper:
             price_2p = None
             price_4p = None
             
-            # Try to find the cabin size selector
             try:
-                # Look for the 2-person selector/button and click it
-                selector_2p = self.driver.find_element(By.XPATH, "//select[@name='cabin_size']//option[@value='2'] | //button[contains(text(), '2')]")
-                selector_2p.click()
-                time.sleep(1.5)
+                from selenium.webdriver.support.ui import Select
+                
+                # Wait for the passenger selector to load
+                passenger_select = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "passenger_select"))
+                )
+                
+                # Select 2 passengers
+                select = Select(passenger_select)
+                select.select_by_value("2")
+                time.sleep(2)
                 
                 # Extract cheapest interior cabin price for 2 people
                 price_2p = self._extract_cheapest_interior_price()
                 logger.debug(f"2-person interior price: ${price_2p}")
                 
-            except NoSuchElementException:
-                logger.debug("Could not find 2-person cabin selector, trying table parsing")
-                # Fallback: parse pricing table directly
-                price_2p = self._parse_pricing_table(cabin_size=2)
-            
-            try:
-                # Look for the 4-person selector/button and click it
-                selector_4p = self.driver.find_element(By.XPATH, "//select[@name='cabin_size']//option[@value='4'] | //button[contains(text(), '4')]")
-                selector_4p.click()
-                time.sleep(1.5)
+                # Select 4 passengers
+                select.select_by_value("4")
+                time.sleep(2)
                 
                 # Extract cheapest interior cabin price for 4 people
                 price_4p = self._extract_cheapest_interior_price()
                 logger.debug(f"4-person interior price: ${price_4p}")
                 
-            except NoSuchElementException:
-                logger.debug("Could not find 4-person cabin selector, trying table parsing")
+            except Exception as e:
+                logger.debug(f"Could not use passenger selector: {e}, trying table parsing")
                 # Fallback: parse pricing table directly
+                price_2p = self._parse_pricing_table(cabin_size=2)
                 price_4p = self._parse_pricing_table(cabin_size=4)
             
             return price_2p, price_4p
