@@ -154,21 +154,32 @@
                         </div>
                         
                         <div class="border-t pt-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs text-gray-500">Total Price</p>
-                                    <p class="text-xl font-bold text-cruise-600">
-                                        $<span x-text="Math.round(deal.total_price_aud)"></span>
-                                    </p>
+                            <div class="mb-3" x-show="deal.price_2p_interior || deal.price_4p_interior">
+                                <p class="text-xs text-gray-500 mb-2">Interior Cabin Pricing</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div x-show="deal.price_2p_interior" class="bg-gray-50 p-2 rounded">
+                                        <p class="text-xs text-gray-600">2 People</p>
+                                        <p class="text-sm font-bold text-cruise-600">
+                                            $<span x-text="Math.round(deal.price_2p_interior)"></span>
+                                        </p>
+                                        <p class="text-xs text-gray-500" x-text="'$' + Math.round(deal.price_2p_interior / 2) + ' pp'"></p>
+                                    </div>
+                                    <div x-show="deal.price_4p_interior" class="bg-gray-50 p-2 rounded">
+                                        <p class="text-xs text-gray-600">4 People</p>
+                                        <p class="text-sm font-bold text-cruise-600">
+                                            $<span x-text="Math.round(deal.price_4p_interior)"></span>
+                                        </p>
+                                        <p class="text-xs text-gray-500" x-text="'$' + Math.round(deal.price_4p_interior / 4) + ' pp'"></p>
+                                    </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <a :href="'/cruise/' + deal.id" class="flex-1 bg-cruise-100 text-cruise-700 px-3 py-2 rounded-lg hover:bg-cruise-200 transition text-xs font-medium text-center">
-                                        Details
-                                    </a>
-                                    <a :href="deal.url" target="_blank" rel="noopener noreferrer" class="flex-1 bg-cruise-600 text-white px-3 py-2 rounded-lg hover:bg-cruise-700 transition text-xs font-medium text-center">
-                                        Book
-                                    </a>
-                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <a :href="'/cruise/' + deal.id" class="flex-1 bg-cruise-100 text-cruise-700 px-3 py-2 rounded-lg hover:bg-cruise-200 transition text-xs font-medium text-center">
+                                    Details
+                                </a>
+                                <a :href="deal.url" target="_blank" rel="noopener noreferrer" class="flex-1 bg-cruise-600 text-white px-3 py-2 rounded-lg hover:bg-cruise-700 transition text-xs font-medium text-center">
+                                    Book Now
+                                </a>
                             </div>
                         </div>
                     </div>

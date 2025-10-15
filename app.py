@@ -225,6 +225,8 @@ async def get_deals(
                 "url": deal.url,
                 "special_offers": deal.special_offers,
                 "image_url": deal.image_url,
+                "price_2p_interior": deal.price_2p_interior,
+                "price_4p_interior": deal.price_4p_interior,
                 "scraped_at": deal.scraped_at.isoformat(),
             }
             for deal in deals
@@ -280,6 +282,11 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
     promo_codes = await promo_repo.get_all()
     valid_codes = len([c for c in promo_codes if c.status == "valid"])
     
+    result = await db.execute(
+        select(CruiseDealDB.last_updated).order_by(CruiseDealDB.last_updated.desc()).limit(1)
+    )
+    last_updated = result.scalar_one_or_none()
+    
     return {
         "success": True,
         "stats": {
@@ -289,8 +296,8 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
             "deals_under_200": deal_counts["under_200"],
             "total_promo_codes": len(promo_codes),
             "valid_promo_codes": valid_codes,
-            "last_updated": "2025-10-09T00:00:00"
-        }
+        },
+        "last_updated": last_updated.isoformat() if last_updated else None
     }
 
 

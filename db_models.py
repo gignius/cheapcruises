@@ -28,6 +28,9 @@ class CruiseDealDB(Base):
     special_offers: Mapped[Optional[str]] = mapped_column(Text)
     image_url: Mapped[Optional[str]] = mapped_column(String(500))
     
+    price_2p_interior: Mapped[Optional[float]] = mapped_column(Float)  # Total price for 2 people in interior cabin
+    price_4p_interior: Mapped[Optional[float]] = mapped_column(Float)  # Total price for 4 people in interior cabin
+    
     cabin_details: Mapped[Optional[str]] = mapped_column(Text)  # JSON: [{category, type, price_pp, total_price, available}]
     itinerary: Mapped[Optional[str]] = mapped_column(Text)  # JSON: [{port, arrival, departure, description}]
     ship_details: Mapped[Optional[str]] = mapped_column(Text)  # JSON: {tonnage, capacity, year_built, amenities}

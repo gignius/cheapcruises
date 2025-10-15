@@ -126,12 +126,15 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-16">
+    <footer class="bg-gray-800 text-white mt-16" x-data="{ lastUpdated: null }" x-init="fetch('/api/stats').then(r => r.json()).then(d => lastUpdated = d.last_updated)">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center">
                 <p>&copy; 2025 CheapCruises.au - Find the best cruise deals in Australia</p>
                 <p class="mt-2 text-gray-400 text-sm">
                     Covering 11 major cruise lines worldwide
+                </p>
+                <p class="mt-2 text-gray-500 text-xs" x-show="lastUpdated" x-cloak>
+                    Deals last updated: <span x-text="new Date(lastUpdated).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })"></span>
                 </p>
             </div>
         </div>
