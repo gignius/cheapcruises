@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Cruise Blog - Expert Tips & Guides | CheapCruises.au{% endblock %}
+
+{% block og_title %}Cruise Blog - Expert Tips, Reviews & Destinations{% endblock %}
+{% block og_description %}Read expert cruise tips, ship reviews, destination guides and money-saving advice from experienced cruisers. Australian cruise insights from a Carnival Gold Status member.{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-r from-cruise-600 to-blue-600 text-white py-12" x-data="{ posts: [], loading: true, categories: [], selectedCategory: null }">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">Cruise Blog</h1>
+        <p class="text-xl text-blue-100 max-w-3xl">Expert tips, destination guides, and insider knowledge from experienced Australian cruisers</p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12" x-data="{
+    posts: [],
+    loading: true,
+    selectedCategory: null,
+    
+    async loadPosts() {
+        this.loading = true;
+        try {
+            const url = this.selectedCategory 
+                ? `/api/blog/posts?category=${encodeURIComponent(this.selectedCategory)}&limit=50`
+                : '/api/blog/posts?limit=50';
+            const response = await fetch(url);
+            const data = await response.json();
+            this.posts = data.posts || [];
+        } catch (error) {
+            console.error('Error loading posts:', error);
+            this.posts = [];
+        } finally {
+            this.loading = false;
+        }
+    },
+    
+    formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-AU', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    }
+}" x-init="loadPosts()">
+
+    <!-- Category Filter -->
+    <div class="mb-8">
+        <div class="flex flex-wrap gap-2">
+            <button @click="selectedCategory = null; loadPosts()" 
+                    :class="selectedCategory === null ? 'bg-cruise-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                    class="px-4 py-2 rounded-full font-medium transition-colors">
+                All Articles
+            </button>
+            <template x-for="category in ['Tips & Guides', 'Ship Reviews', 'Destinations', 'Dining & Entertainment', 'Deals & Savings', 'Cruise Lifestyle']">
+                <button @click="selectedCategory = category; loadPosts()" 
+                        :class="selectedCategory === category ? 'bg-cruise-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                        class="px-4 py-2 rounded-full font-medium transition-colors"
+                        x-text="category">
+                </button>
+            </template>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div x-show="loading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cruise-600 border-t-transparent"></div>
+        <p class="mt-4 text-gray-600">Loading articles...</p>
+    </div>
+
+    <!-- Blog Posts Grid -->
+    <div x-show="!loading && posts.length > 0" x-cloak>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <template x-for="post in posts" :key="post.id">
+                <article class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+                    <!-- Featured Image -->
+                    <div x-show="post.featured_image_url" class="h-48 bg-gradient-to-br from-cruise-100 to-blue-100">
+                        <img :src="post.featured_image_url" 
+                             :alt="post.title"
+                             class="w-full h-full object-cover"
+                             @error="$event.target.style.display='none'">
+                    </div>
+                    
+                    <div class="p-6">
+                        <!-- Category Badge -->
+                        <div x-show="post.category" class="mb-3">
+                            <span class="inline-block bg-cruise-100 text-cruise-700 text-xs font-semibold px-3 py-1 rounded-full"
+                                  x-text="post.category"></span>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h2 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-cruise-600">
+                            <a :href="`/blog/${post.slug}`" x-text="post.title"></a>
+                        </h2>
+                        
+                        <!-- Excerpt -->
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3" x-text="post.excerpt"></p>
+                        
+                        <!-- Meta Info -->
+                        <div class="flex items-center justify-between text-sm text-gray-500">
+                            <div class="flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span x-text="post.author"></span>
+                            </div>
+                            <span x-text="formatDate(post.published_at)"></span>
+                        </div>
+                        
+                        <!-- Read More Link -->
+                        <div class="mt-4">
+                            <a :href="`/blog/${post.slug}`" 
+                               class="inline-flex items-center text-cruise-600 hover:text-cruise-700 font-semibold">
+                                Read More
+                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </template>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div x-show="!loading && posts.length === 0" x-cloak class="text-center py-12">
+        <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">No articles found</h3>
+        <p class="mt-2 text-gray-500">Check back soon for cruise tips and guides!</p>
+    </div>
+</div>
+
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}

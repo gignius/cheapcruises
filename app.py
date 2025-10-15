@@ -13,7 +13,7 @@ from loguru import logger
 
 from config_settings import settings
 from database_async import init_db, get_db, CruiseDealRepository, PromoCodeRepository
-from db_models import CruiseDealDB, PromoCodeDB
+from db_models import CruiseDealDB, PromoCodeDB, BlogPostDB
 from scheduler import start_scheduler, stop_scheduler
 import os
 
@@ -520,6 +520,104 @@ async def vote_promo_code(
     except Exception as e:
         logger.error(f"Error voting on promo code {code_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to process vote")
+
+
+@app.get("/blog", response_class=HTMLResponse)
+async def blog_page(request: Request):
+    """Blog listing page"""
+    return templates.TemplateResponse("blog.html", {"request": request})
+
+
+@app.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_post_page(request: Request, slug: str, db: AsyncSession = Depends(get_db)):
+    """Individual blog post page"""
+    result = await db.execute(
+        select(BlogPostDB).where(BlogPostDB.slug == slug, BlogPostDB.status == "published")
+    )
+    post = result.scalar_one_or_none()
+    
+    if not post:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+    
+    post.view_count += 1
+    await db.commit()
+    
+    return templates.TemplateResponse("blog_post.html", {
+        "request": request,
+        "post": post
+    })
+
+
+@app.get("/api/blog/posts")
+async def get_blog_posts(
+    category: Optional[str] = Query(None, description="Filter by category"),
+    limit: int = Query(10, description="Number of posts to return"),
+    skip: int = Query(0, description="Number of posts to skip"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get published blog posts"""
+    query = select(BlogPostDB).where(BlogPostDB.status == "published")
+    
+    if category:
+        query = query.where(BlogPostDB.category == category)
+    
+    query = query.order_by(BlogPostDB.published_at.desc()).offset(skip).limit(limit)
+    
+    result = await db.execute(query)
+    posts = result.scalars().all()
+    
+    return {
+        "success": True,
+        "count": len(posts),
+        "posts": [
+            {
+                "id": post.id,
+                "title": post.title,
+                "slug": post.slug,
+                "excerpt": post.excerpt,
+                "author": post.author,
+                "category": post.category,
+                "tags": post.tags,
+                "featured_image_url": post.featured_image_url,
+                "published_at": post.published_at.isoformat() if post.published_at else None,
+                "view_count": post.view_count,
+            }
+            for post in posts
+        ]
+    }
+
+
+@app.get("/api/blog/posts/{slug}")
+async def get_blog_post(slug: str, db: AsyncSession = Depends(get_db)):
+    """Get a single blog post by slug"""
+    result = await db.execute(
+        select(BlogPostDB).where(BlogPostDB.slug == slug, BlogPostDB.status == "published")
+    )
+    post = result.scalar_one_or_none()
+    
+    if not post:
+        return {"success": False, "message": "Blog post not found"}
+    
+    return {
+        "success": True,
+        "post": {
+            "id": post.id,
+            "title": post.title,
+            "slug": post.slug,
+            "content": post.content,
+            "excerpt": post.excerpt,
+            "author": post.author,
+            "meta_title": post.meta_title,
+            "meta_description": post.meta_description,
+            "keywords": post.keywords,
+            "category": post.category,
+            "tags": post.tags,
+            "featured_image_url": post.featured_image_url,
+            "featured_image_alt": post.featured_image_alt,
+            "published_at": post.published_at.isoformat() if post.published_at else None,
+            "view_count": post.view_count,
+        }
+    }
 
 
 if __name__ == "__main__":

@@ -74,3 +74,39 @@ class PromoCodeDB(Base):
         return f"<PromoCode {self.code} - {self.cruise_line} - {self.status}>"
 
 
+class BlogPostDB(Base):
+    """Blog post database model"""
+    __tablename__ = "blog_posts"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    slug: Mapped[str] = mapped_column(String(250), nullable=False, unique=True, index=True)
+    excerpt: Mapped[Optional[str]] = mapped_column(String(500))
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    author: Mapped[str] = mapped_column(String(100), default="CheapCruises.au Editorial Team")
+    
+    meta_title: Mapped[Optional[str]] = mapped_column(String(200))
+    meta_description: Mapped[Optional[str]] = mapped_column(String(500))
+    keywords: Mapped[Optional[str]] = mapped_column(Text)
+    
+    featured_image_url: Mapped[Optional[str]] = mapped_column(String(500))
+    featured_image_alt: Mapped[Optional[str]] = mapped_column(String(200))
+    
+    category: Mapped[Optional[str]] = mapped_column(String(100), index=True)
+    tags: Mapped[Optional[str]] = mapped_column(Text)  # JSON: [tag1, tag2, ...]
+    
+    status: Mapped[str] = mapped_column(String(20), default="draft", index=True)  # draft, published
+    published_at: Mapped[Optional[datetime]] = mapped_column(DateTime, index=True)
+    
+    view_count: Mapped[int] = mapped_column(Integer, default=0)
+    
+    ai_generated: Mapped[bool] = mapped_column(Boolean, default=False)
+    generation_prompt: Mapped[Optional[str]] = mapped_column(Text)
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+    
+    def __repr__(self):
+        return f"<BlogPost {self.title} - {self.status}>"
+
+
