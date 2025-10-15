@@ -13,8 +13,8 @@
     <!-- Open Graph / Facebook / LinkedIn / Slack / Discord -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cheapcruises.au{% block og_url %}{% endblock %}">
-    <meta property="og:title" content="{% block og_title %}CheapCruises.au - Find Amazing Cruise Deals in Australia{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Find amazing cruise deals from $50 per night! Compare prices from 11 major cruise lines including Royal Caribbean, Carnival, and Princess. Departing from Sydney, Brisbane, Melbourne and more.{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}CheapCruises.au - South Pacific & Aussie Cruise Deals{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}From $50 AUD/night (quad)! South Pacific, Australia & New Zealand cruises for Aussie cruisers. Compare 11 major cruise lines departing Sydney, Brisbane, Melbourne & Auckland.{% endblock %}">
     <meta property="og:image" content="https://cheapcruises.au{% block og_image %}/static/og-image.jpg{% endblock %}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -24,8 +24,8 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://cheapcruises.au{% block twitter_url %}{% endblock %}">
-    <meta name="twitter:title" content="{% block twitter_title %}CheapCruises.au - Find Amazing Cruise Deals{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}Find amazing cruise deals from $50 per night! Compare prices from 11 major cruise lines. Departing from Sydney, Brisbane, Melbourne and more.{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}CheapCruises.au - South Pacific & Aussie Cruises{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}From $50 AUD/night (quad)! South Pacific, Australia & New Zealand cruises for Aussie cruisers. Compare 11 cruise lines from Sydney, Brisbane, Melbourne & Auckland.{% endblock %}">
     <meta name="twitter:image" content="https://cheapcruises.au{% block twitter_image %}/static/og-image.jpg{% endblock %}">
     
     <!-- Additional Meta Tags -->
@@ -73,7 +73,8 @@
         /* Senior Mode Styles - Enhanced Accessibility */
         body.senior-mode {
             font-size: 120% !important;
-            line-height: 1.8 !important;
+            line-height: 2.0 !important;
+            letter-spacing: 0.02em !important;
         }
         
         /* Larger headings in Senior Mode */
@@ -149,11 +150,30 @@
         
         /* Better spacing */
         body.senior-mode .space-y-4 > * + * {
-            margin-top: 1.5rem !important;
+            margin-top: 2rem !important;
         }
         
         body.senior-mode .space-y-6 > * + * {
+            margin-top: 2.5rem !important;
+        }
+        
+        body.senior-mode .space-y-2 > * + * {
+            margin-top: 1rem !important;
+        }
+        
+        body.senior-mode .space-y-3 > * + * {
+            margin-top: 1.5rem !important;
+        }
+        
+        /* More spacing for paragraphs */
+        body.senior-mode p {
+            margin-bottom: 1.25rem !important;
+        }
+        
+        /* More spacing for headings */
+        body.senior-mode h1, body.senior-mode h2, body.senior-mode h3 {
             margin-top: 2rem !important;
+            margin-bottom: 1.5rem !important;
         }
         
         /* Larger touch targets */

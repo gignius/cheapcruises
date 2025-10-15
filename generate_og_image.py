@@ -44,19 +44,23 @@ def create_og_image():
     draw.text((620, title_y), emoji, fill='white', font=title_font, anchor="mm")
     
     # Draw main message
-    main_text = "Find Amazing Cruises"
+    main_text = "South Pacific & Aussie Cruises"
     draw.text((600, 200 + 2), main_text, fill=(0, 0, 0, 128), font=subtitle_font, anchor="mm")
     draw.text((600, 200), main_text, fill='white', font=subtitle_font, anchor="mm")
     
     # Draw price highlight
-    price_text = "from $50/night"
-    draw.text((600, 340 + 3), price_text, fill=(0, 0, 0, 128), font=price_font, anchor="mm")
-    draw.text((600, 340), price_text, fill='#FCD34D', font=price_font, anchor="mm")
+    price_text = "from $50 AUD/night"
+    draw.text((600, 320 + 3), price_text, fill=(0, 0, 0, 128), font=price_font, anchor="mm")
+    draw.text((600, 320), price_text, fill='#FCD34D', font=price_font, anchor="mm")
+    
+    quad_text = "(quad occupancy)"
+    draw.text((600, 430 + 2), quad_text, fill=(0, 0, 0, 128), font=subtitle_font, anchor="mm")
+    draw.text((600, 430), quad_text, fill='white', font=subtitle_font, anchor="mm")
     
     # Draw bottom text
-    bottom_text = "11 Cruise Lines • Daily Updates • Best Deals"
-    draw.text((600, 520 + 2), bottom_text, fill=(0, 0, 0, 128), font=small_font, anchor="mm")
-    draw.text((600, 520), bottom_text, fill='white', font=small_font, anchor="mm")
+    bottom_text = "Australia & New Zealand • 11 Cruise Lines"
+    draw.text((600, 550 + 2), bottom_text, fill=(0, 0, 0, 128), font=small_font, anchor="mm")
+    draw.text((600, 550), bottom_text, fill='white', font=small_font, anchor="mm")
     
     # Save image
     static_dir = 'static'
