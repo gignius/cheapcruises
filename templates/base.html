@@ -243,12 +243,10 @@
                     <div class="flex items-center space-x-2 pl-4 border-l border-gray-300">
                         <span class="text-sm font-semibold text-gray-700" x-text="seniorMode ? '👴 Senior Mode' : 'Regular Mode'"></span>
                         <button @click="seniorMode = !seniorMode" 
-                                class="relative inline-flex h-5 w-11 items-center transition-colors focus:outline-none focus:ring-2 focus:ring-cruise-500 focus:ring-offset-2"
-                                style="border-radius: 12px;"
+                                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cruise-500 focus:ring-offset-2"
                                 :class="seniorMode ? 'bg-cruise-600' : 'bg-gray-300'">
-                            <span class="inline-block h-4 w-4 transform bg-white shadow-lg transition-all duration-200 ease-in-out"
-                                  style="border-radius: 10px; margin: 0.5px;"
-                                  :class="seniorMode ? 'translate-x-6' : 'translate-x-0.5'"></span>
+                            <span class="inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-all duration-200 ease-in-out"
+                                  :class="seniorMode ? 'translate-x-5' : 'translate-x-0.5'"></span>
                         </button>
                     </div>
                 </div>
@@ -281,12 +279,10 @@
                 <div class="flex items-center justify-between px-3 py-3 border-t border-gray-200 mt-2 pt-3">
                     <span class="text-base font-semibold text-gray-700" x-text="seniorMode ? '👴 Senior Mode' : 'Regular Mode'"></span>
                     <button @click="seniorMode = !seniorMode" 
-                            class="relative inline-flex h-6 w-12 items-center transition-colors focus:outline-none focus:ring-2 focus:ring-cruise-500 focus:ring-offset-2"
-                            style="border-radius: 14px;"
+                            class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cruise-500 focus:ring-offset-2"
                             :class="seniorMode ? 'bg-cruise-600' : 'bg-gray-300'">
-                        <span class="inline-block h-5 w-5 transform bg-white shadow-lg transition-all duration-200 ease-in-out"
-                              style="border-radius: 12px; margin: 0.5px;"
-                              :class="seniorMode ? 'translate-x-6' : 'translate-x-0.5'"></span>
+                        <span class="inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-all duration-200 ease-in-out"
+                              :class="seniorMode ? 'translate-x-5' : 'translate-x-0.5'"></span>
                     </button>
                 </div>
             </div>
