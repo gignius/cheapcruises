@@ -9,7 +9,7 @@ from loguru import logger
 
 from db_models import BlogPostDB
 from blog_generator import CruiseBlogGenerator
-from config_settings import DATABASE_URL
+from config_settings import settings
 
 # Configure logging
 logger.add("logs/blog_publishing_{time}.log", rotation="1 day", retention="30 days")
@@ -19,8 +19,7 @@ async def publish_articles(num_articles: int = 2):
     logger.info(f"Starting blog article publishing job - generating {num_articles} articles")
     
     # Create async engine
-    async_url = DATABASE_URL.replace('sqlite:///', 'sqlite+aiosqlite:///')
-    engine = create_async_engine(async_url, echo=False)
+    engine = create_async_engine(settings.database_url, echo=False)
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     generator = CruiseBlogGenerator()
