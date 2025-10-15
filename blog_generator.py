@@ -86,7 +86,7 @@ Write the article now:"""
 
         try:
             message = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet-20240620",
                 max_tokens=4000,
                 temperature=0.8,
                 messages=[
@@ -111,7 +111,7 @@ Write the article now:"""
             keywords_prompt = f"List 10 SEO keywords for an article titled '{topic}' about cruises in Australia. Return only comma-separated keywords, no explanation."
             
             keywords_msg = self.client.messages.create(
-                model="claude-3-5-sonnet-20241022",
+                model="claude-3-5-sonnet-20240620",
                 max_tokens=200,
                 temperature=0.3,
                 messages=[{"role": "user", "content": keywords_prompt}]
