@@ -217,8 +217,12 @@
 <body class="bg-gray-50" x-data="{ 
     currency: 'AUD', 
     mobileMenuOpen: false,
-    seniorMode: localStorage.getItem('seniorMode') === 'true'
-}" x-init="$watch('seniorMode', value => localStorage.setItem('seniorMode', value))" :class="{ 'senior-mode': seniorMode }">
+    seniorMode: false
+}" x-init="
+    // Clear any old localStorage value and start fresh with false
+    localStorage.setItem('seniorMode', 'false');
+    $watch('seniorMode', value => localStorage.setItem('seniorMode', value));
+" :class="{ 'senior-mode': seniorMode }">
     <!-- Navigation -->
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
