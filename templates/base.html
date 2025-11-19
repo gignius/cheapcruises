@@ -245,7 +245,7 @@
                     
                     <!-- Senior Mode Toggle -->
                     <div class="flex items-center space-x-2 pl-4 border-l border-gray-300">
-                        <span class="text-sm font-semibold text-gray-700" x-text="seniorMode ? '👴 Senior Mode' : 'Regular Mode'"></span>
+                        <span class="text-sm font-semibold text-gray-700" x-text="seniorMode ? '👴 Senior Mode' : 'Senior Mode'"></span>
                         <button @click="seniorMode = !seniorMode" 
                                 class="relative inline-flex h-6 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cruise-500 focus:ring-offset-2"
                                 :class="seniorMode ? 'bg-cruise-600' : 'bg-gray-300'">
@@ -281,7 +281,7 @@
                 
                 <!-- Senior Mode Toggle (Mobile) -->
                 <div class="flex items-center justify-between px-3 py-3 border-t border-gray-200 mt-2 pt-3">
-                    <span class="text-base font-semibold text-gray-700" x-text="seniorMode ? '👴 Senior Mode' : 'Regular Mode'"></span>
+                    <span class="text-base font-semibold text-gray-700" x-text="seniorMode ? '👴 Senior Mode' : 'Senior Mode'"></span>
                     <button @click="seniorMode = !seniorMode" 
                             class="relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-cruise-500 focus:ring-offset-2"
                             :class="seniorMode ? 'bg-cruise-600' : 'bg-gray-300'">

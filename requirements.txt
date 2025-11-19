@@ -34,6 +34,7 @@ email-validator==2.2.0
 
 # AI
 anthropic==0.18.1  # Claude AI for blog generation
+openai==1.3.0  # OpenAI for image generation
 
 # Production
 gunicorn==21.2.0  # Optional: for production with multiple workers
