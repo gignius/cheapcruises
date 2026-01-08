@@ -139,6 +139,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
+from fastapi.responses import FileResponse
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Serve favicon"""
+    return FileResponse("static/favicon.ico", media_type="image/x-icon")
+
+
 # ============================================================================
 # WEB ROUTES (HTML Pages)
 # ============================================================================

@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     recipient_email: Optional[str] = None
     
     anthropic_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
     
     # Security
     secret_key: Optional[str] = None

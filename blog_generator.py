@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Dict, Optional
 from loguru import logger
 import anthropic
+from image_generator import BlogImageGenerator
 
 # Article topics focused on Australian cruises
 ARTICLE_TOPICS = [
@@ -34,12 +35,20 @@ ARTICLE_TOPICS = [
 class CruiseBlogGenerator:
     """Generate SEO-optimized cruise blog articles using Claude AI"""
     
-    def __init__(self):
+    def __init__(self, generate_images: bool = True):
         from config_settings import settings
         api_key = settings.anthropic_api_key
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY not configured in settings")
         self.client = anthropic.Anthropic(api_key=api_key)
+        self.generate_images = generate_images
+        self.image_generator = None
+        if generate_images:
+            try:
+                self.image_generator = BlogImageGenerator()
+            except Exception as e:
+                logger.warning(f"Image generation disabled: {e}")
+                self.generate_images = False
         
     def generate_slug(self, title: str) -> str:
         """Generate URL-friendly slug from title"""
@@ -119,17 +128,30 @@ Write the article now:"""
             
             keywords = keywords_msg.content[0].text.strip()
             
+            slug = self.generate_slug(topic)
+            category = self._determine_category(topic)
+            
+            # Generate featured image if enabled
+            featured_image_url = None
+            if self.generate_images and self.image_generator:
+                try:
+                    featured_image_url = self.image_generator.generate_image(topic, category, slug)
+                except Exception as e:
+                    logger.error(f"Failed to generate image: {e}")
+            
             article = {
                 'title': topic,
-                'slug': self.generate_slug(topic),
+                'slug': slug,
                 'content': content,
                 'excerpt': excerpt,
                 'meta_title': f"{topic} | CheapCruises.au",
                 'meta_description': meta_desc,
                 'keywords': keywords,
                 'author': 'Timothy Yang - Cruise Expert',
-                'category': self._determine_category(topic),
+                'category': category,
                 'tags': json.dumps(self._generate_tags(topic)),
+                'featured_image_url': featured_image_url,
+                'featured_image_alt': topic,
                 'ai_generated': True,
                 'generation_prompt': prompt[:500],
             }
