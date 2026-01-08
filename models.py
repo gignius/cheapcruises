@@ -24,6 +24,8 @@ class CruiseDeal:
     itinerary: Optional[str] = None  # JSON string
     ship_details: Optional[str] = None  # JSON string
     inclusions: Optional[str] = None  # JSON string
+    price_2p_interior: Optional[float] = None  # Total price for 2 people in interior cabin
+    price_4p_interior: Optional[float] = None  # Total price for 4 people in interior cabin
 
     def __str__(self):
         return (

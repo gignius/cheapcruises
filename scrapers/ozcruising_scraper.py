@@ -331,7 +331,36 @@ class OzCruisingScraper(BaseScraper):
             elif 'Quad' in full_text:
                 cabin_type = "Quad"
             
-            # Extract price - look for "From $XXX pp" or "Twin From $XXX"
+            # Extract BOTH Twin and Quad prices from listing text
+            # OzCruising shows "Twin From $X pp" and "Quad From $Y pp" on listings
+            price_2p_interior = None
+            price_4p_interior = None
+            
+            # Extract Twin (2-person) price - this is per-person, multiply by 2 for total
+            twin_patterns = [
+                r'Twin From\s+\$(\d{1,3}(?:,\d{3})*)\s*pp',
+                r'Twin From\s+\$(\d{1,3}(?:,\d{3})*)',
+            ]
+            for pattern in twin_patterns:
+                twin_match = re.search(pattern, full_text, re.IGNORECASE)
+                if twin_match:
+                    twin_pp = float(twin_match.group(1).replace(',', ''))
+                    price_2p_interior = twin_pp * 2  # Store as total for 2 people
+                    break
+            
+            # Extract Quad (4-person) price - this is per-person, multiply by 4 for total
+            quad_patterns = [
+                r'Quad From\s+\$(\d{1,3}(?:,\d{3})*)\s*pp',
+                r'Quad From\s+\$(\d{1,3}(?:,\d{3})*)',
+            ]
+            for pattern in quad_patterns:
+                quad_match = re.search(pattern, full_text, re.IGNORECASE)
+                if quad_match:
+                    quad_pp = float(quad_match.group(1).replace(',', ''))
+                    price_4p_interior = quad_pp * 4  # Store as total for 4 people
+                    break
+            
+            # Extract price for total_price_aud - use the cheapest per-person option
             total_price = 0.0
             price_patterns = [
                 r'Twin From \$(\d{1,3}(?:,\d{3})*)',
@@ -403,7 +432,9 @@ class OzCruisingScraper(BaseScraper):
                 url=url,
                 scraped_at=datetime.now(),
                 special_offers=special_offers,
-                image_url=None  # OzCruising scraper doesn't extract images (would require visiting each page)
+                image_url=None,  # OzCruising scraper doesn't extract images (would require visiting each page)
+                price_2p_interior=price_2p_interior,
+                price_4p_interior=price_4p_interior
             )
         except Exception as e:
             safe_print(f"⚠️  Error in _parse_deal: {e}")
