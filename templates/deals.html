@@ -194,17 +194,20 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     Interior Cabin Pricing
+                                    <template x-if="deal.price_2p_interior && deal.price_4p_interior && (deal.price_4p_interior / 4) < (deal.price_2p_interior / 2)">
+                                        <span class="ml-2 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Quad is cheaper!</span>
+                                    </template>
                                 </p>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid gap-3" :class="deal.price_2p_interior && deal.price_4p_interior ? 'grid-cols-2' : 'grid-cols-1'">
                                     <div x-show="deal.price_2p_interior" class="bg-gradient-to-br from-cruise-50 to-blue-50 p-3 rounded-lg border border-cruise-100 shadow-sm">
-                                        <p class="text-xs font-medium text-gray-600 mb-1">Twin Room</p>
+                                        <p class="text-xs font-medium text-gray-600 mb-1">Twin Room (2 guests)</p>
                                         <p class="text-lg font-bold text-cruise-600">
                                             $<span x-text="Math.round(deal.price_2p_interior)"></span>
                                         </p>
                                         <p class="text-xs text-gray-500 mt-1" x-text="'$' + Math.round(deal.price_2p_interior / 2) + ' per person'"></p>
                                     </div>
                                     <div x-show="deal.price_4p_interior" class="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-lg border border-green-100 shadow-sm">
-                                        <p class="text-xs font-medium text-gray-600 mb-1">Quad Room</p>
+                                        <p class="text-xs font-medium text-gray-600 mb-1">Quad Room (4 guests)</p>
                                         <p class="text-lg font-bold text-green-600">
                                             $<span x-text="Math.round(deal.price_4p_interior)"></span>
                                         </p>
