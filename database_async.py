@@ -87,6 +87,11 @@ class CruiseDealRepository:
             existing.itinerary = deal.itinerary if hasattr(deal, 'itinerary') else existing.itinerary
             existing.ship_details = deal.ship_details if hasattr(deal, 'ship_details') else existing.ship_details
             existing.inclusions = deal.inclusions if hasattr(deal, 'inclusions') else existing.inclusions
+            # Update pricing fields if provided
+            if hasattr(deal, 'price_2p_interior') and deal.price_2p_interior is not None:
+                existing.price_2p_interior = deal.price_2p_interior
+            if hasattr(deal, 'price_4p_interior') and deal.price_4p_interior is not None:
+                existing.price_4p_interior = deal.price_4p_interior
             existing.last_updated = datetime.now()
             existing.scraped_at = deal.scraped_at
             await self.session.flush()
@@ -110,6 +115,8 @@ class CruiseDealRepository:
             itinerary=deal.itinerary if hasattr(deal, 'itinerary') else None,
             ship_details=deal.ship_details if hasattr(deal, 'ship_details') else None,
             inclusions=deal.inclusions if hasattr(deal, 'inclusions') else None,
+            price_2p_interior=deal.price_2p_interior if hasattr(deal, 'price_2p_interior') else None,
+            price_4p_interior=deal.price_4p_interior if hasattr(deal, 'price_4p_interior') else None,
             scraped_at=deal.scraped_at,
             last_updated=datetime.now(),
             is_active=True
