@@ -542,13 +542,18 @@ class OzCruisingScraper(BaseScraper):
         return self.BASE_URL
     
     def _is_duplicate(self, new_deal: CruiseDeal) -> bool:
-        """Check if deal already exists in the list"""
+        """Check if deal already exists in the list. If duplicate found, update pricing fields."""
         for deal in self.deals:
             if (deal.cruise_line == new_deal.cruise_line and
                 deal.ship_name == new_deal.ship_name and
                 deal.destination == new_deal.destination and
                 deal.departure_date == new_deal.departure_date and
                 deal.duration_days == new_deal.duration_days):
+                # Update pricing fields on existing deal if new deal has them
+                if hasattr(new_deal, 'price_2p_interior') and new_deal.price_2p_interior is not None:
+                    deal.price_2p_interior = new_deal.price_2p_interior
+                if hasattr(new_deal, 'price_4p_interior') and new_deal.price_4p_interior is not None:
+                    deal.price_4p_interior = new_deal.price_4p_interior
                 return True
         return False
     
