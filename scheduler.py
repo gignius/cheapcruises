@@ -106,7 +106,7 @@ def start_scheduler():
             id='cruise_scraper',
             name='Run cruise scrapers every 6 hours',
             replace_existing=True,
-            next_run_time=None  # Start immediately on app start
+            next_run_time=datetime.now()  # Run immediately on app start
         )
         
         # Schedule promo code update every 12 hours
