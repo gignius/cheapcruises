@@ -24,6 +24,8 @@ class OzCruisingScraper(BaseScraper):
         
         try:
             # Scrape multiple pages for more deals - EXPANDED COVERAGE
+            # NOTE: OzCruising changed their URL structure in Jan 2026
+            # Old format: /cheap-cruises-from-sydney -> New format: /departing/sydney/cruises
             pages_to_scrape = [
                 # Homepage & Specials
                 self.BASE_URL,  # Homepage featured deals
@@ -31,80 +33,52 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/last-minute-cruises",  # Last minute deals
                 f"{self.BASE_URL}/deals",  # Main deals page
                 
-                # Australian Ports (expanded)
+                # Australian Ports - NEW URL FORMAT (departing/port/cruises)
+                f"{self.BASE_URL}/departing/sydney/cruises",
+                f"{self.BASE_URL}/departing/brisbane/cruises",
+                f"{self.BASE_URL}/departing/melbourne/cruises",
+                f"{self.BASE_URL}/departing/adelaide/cruises",
+                f"{self.BASE_URL}/departing/fremantle/cruises",
+                f"{self.BASE_URL}/departing/cairns/cruises",
+                # Also keep old format URLs that still work
                 f"{self.BASE_URL}/cheap-cruises-from-sydney",
                 f"{self.BASE_URL}/cheap-cruises-from-brisbane",
-                f"{self.BASE_URL}/cheap-cruises-from-melbourne",
-                f"{self.BASE_URL}/cheap-cruises-from-perth",
-                f"{self.BASE_URL}/cheap-cruises-from-adelaide",
-                f"{self.BASE_URL}/cheap-cruises-from-fremantle",
-                f"{self.BASE_URL}/cheap-cruises-from-hobart",
-                f"{self.BASE_URL}/cheap-cruises-from-darwin",
                 
-                # International Ports (expanded)
-                f"{self.BASE_URL}/cheap-cruises-from-auckland",
-                f"{self.BASE_URL}/cheap-cruises-from-singapore",
-                f"{self.BASE_URL}/cheap-cruises-from-hong-kong",
-                f"{self.BASE_URL}/cheap-cruises-from-tokyo",
-                f"{self.BASE_URL}/cheap-cruises-from-vancouver",
-                f"{self.BASE_URL}/cheap-cruises-from-miami",
-                f"{self.BASE_URL}/cheap-cruises-from-southampton",
-                f"{self.BASE_URL}/cheap-cruises-from-rome",
-                f"{self.BASE_URL}/cheap-cruises-from-barcelona",
+                # Region-based URLs (new format)
+                f"{self.BASE_URL}/region/new-zealand/cruises",
+                f"{self.BASE_URL}/region/south-pacific/cruises",
+                f"{self.BASE_URL}/region/hawaii/cruises",
+                f"{self.BASE_URL}/region/asia/cruises",
+                f"{self.BASE_URL}/region/mediterranean/cruises",
+                f"{self.BASE_URL}/region/alaska/cruises",
+                f"{self.BASE_URL}/region/caribbean/cruises",
+                f"{self.BASE_URL}/region/europe/cruises",
                 
-                # All Cruise Lines (comprehensive)
-                f"{self.BASE_URL}/searchcruise/bysearchbar/17/-111/-111/-111/true/-111/-111/-111/-111",  # Carnival
-                f"{self.BASE_URL}/searchcruise/bysearchbar/5/-111/-111/-111/true/-111/-111/-111/-111/all-bold",  # Royal Caribbean
-                f"{self.BASE_URL}/searchcruise/bysearchbar/4/-111/-111/-111/true/-111/-111/-111/-111-bold",  # Princess
-                f"{self.BASE_URL}/searchcruise/bysearchbar/26/-111/-111/-111/true/-111/-111/-111/-111-bold",  # Norwegian
-                f"{self.BASE_URL}/searchcruise/bysearchbar/1/-111/-111/-111/true/-111/-111/-111/-111-bold",  # Celebrity
-                f"{self.BASE_URL}/searchcruise/bysearchbar/2/-111/-111/-111/true/-111/-111/-111/-111-bold",  # Holland America
-                f"{self.BASE_URL}/searchcruise/bysearchbar/6/-111/-111/-111/true/-111/-111/-111/-111-bold",  # Cunard
-                f"{self.BASE_URL}/searchcruise/bysearchbar/3/-111/-111/-111/true/-111/-111/-111/-111-bold",  # P&O Australia
-                f"{self.BASE_URL}/searchcruise/bysearchbar/20/-111/-111/-111/false/-111/-111/-111/-111/all/-111-bold",  # MSC
-                f"{self.BASE_URL}/searchcruise/bysearchbar/18/-111/-111/-111/true/-111/-111/-111/-111/all/-111-bold",  # Seabourn
-                f"{self.BASE_URL}/searchcruise/bysearchbar/47/-111/-111/-111/true/-111/-111/-111/-111/all/-111-bold",  # Viking
-                f"{self.BASE_URL}/searchcruise/bysearchbar/azamaraclubcruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Azamara
-                f"{self.BASE_URL}/searchcruise/bysearchbar/silversea-cruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Silversea
-                f"{self.BASE_URL}/searchcruise/bysearchbar/oceania-cruises/-111/-111/-111/false/-111/-111/-111/-111/-111/-111-bold",  # Oceania
+                # Weekend & Short cruises
+                f"{self.BASE_URL}/weekend/cruises",
                 
-                # Popular Destinations (worldwide coverage - expanded)
-                f"{self.BASE_URL}/caribbean-cruises",
-                f"{self.BASE_URL}/alaska-cruises",
-                f"{self.BASE_URL}/mediterranean-cruises",
-                f"{self.BASE_URL}/europe-cruises",
-                f"{self.BASE_URL}/south-pacific-cruises",
-                f"{self.BASE_URL}/asia-cruises",
-                f"{self.BASE_URL}/new-zealand-cruises",
-                f"{self.BASE_URL}/hawaii-cruises",
-                f"{self.BASE_URL}/transatlantic-cruises",
-                f"{self.BASE_URL}/world-cruises",
-                f"{self.BASE_URL}/australia-cruises",
-                f"{self.BASE_URL}/scandinavia-cruises",
-                f"{self.BASE_URL}/canada-cruises",
+                # Cruise line brand pages (new format)
+                f"{self.BASE_URL}/brand/royal-caribbean/cruises",
+                f"{self.BASE_URL}/brand/carnival-cruises/cruises",
+                f"{self.BASE_URL}/brand/princess-cruises/cruises",
+                f"{self.BASE_URL}/brand/celebrity-cruises/cruises",
+                f"{self.BASE_URL}/brand/ncl/cruises",
+                f"{self.BASE_URL}/brand/cunard/cruises",
+                f"{self.BASE_URL}/brand/holland-america/cruises",
+                f"{self.BASE_URL}/brand/msc/cruises",
+                f"{self.BASE_URL}/brand/viking/cruises",
+                f"{self.BASE_URL}/brand/azamara/cruises",
+                f"{self.BASE_URL}/brand/seabourn/cruises",
+                
+                # Search URLs (still work)
+                f"{self.BASE_URL}/searchcruise/bysearchbar/0/-111/-111/-111/true/-111/-111/-111/-111",  # All cruises
             ]
             
-            # Scrape simple pages (homepage, specials, ports)
-            simple_pages = pages_to_scrape[:22]  # First 22 are non-paginated (homepage, specials, ports)
-            for page_url in simple_pages:
-                logger.debug(f"Scraping: {page_url}")
-                soup = self.get_page(page_url)
-                if soup:
-                    self._parse_page(soup)
-            
-            # Scrape cruise line pages WITH PAGINATION (get ALL deals!)
-            cruise_line_pages = pages_to_scrape[22:36]  # Cruise line search pages
-            for page_url in cruise_line_pages:
+            # Scrape all pages with pagination support
+            # All OzCruising pages support pagination, so we scrape each with pagination
+            for page_url in pages_to_scrape:
                 logger.debug(f"Scraping with pagination: {page_url}")
-                self._scrape_with_pagination(page_url, max_pages=5)  # Increased to 5 pages for more coverage
-            
-            # Scrape destination pages
-            destination_pages = pages_to_scrape[36:]  # Remaining are destinations
-            for page_url in destination_pages:
-                logger.debug(f"Scraping: {page_url}")
-                soup = self.get_page(page_url)
-                if soup:
-                    self._parse_page(soup)
+                self._scrape_with_pagination(page_url, max_pages=10)
             
             logger.info(f"Enriching {len(self.deals)} deals with images from detail pages...")
             self._enrich_deals_with_images()
