@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Scraping
     user_agent: str = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     request_timeout: int = 30
-    scraper_interval_hours: int = 6  # Run scrapers every 6 hours
+    scraper_interval_hours: int = 1  # Run scrapers every hour
     
     # Email (Optional)
     email_enabled: bool = False
