@@ -266,7 +266,7 @@
     <footer class="bg-gray-800 text-white mt-16" x-data="{ lastUpdated: null }" x-init="fetch('/api/stats').then(r => r.json()).then(d => lastUpdated = d.last_updated)">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center">
-                <p>&copy; 2025 CheapCruises.au - Find the best cruise deals in Australia</p>
+                <p>&copy; 2026 CheapCruises.au - Find the best cruise deals in Australia</p>
                 <p class="mt-2 text-gray-400 text-sm">
                     Compare cruises from 11 major cruise lines • South Pacific, Australia & New Zealand • Plus Caribbean, Mediterranean, Alaska & More
                 </p>
@@ -283,7 +283,7 @@
                         Last updated: <span class="text-gray-400 font-medium" x-text="new Date(lastUpdated).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })"></span>
                     </p>
                     <p class="text-gray-500 text-xs mt-1">
-                        Next update: Daily at 2:00 AM & 2:00 PM UTC (12:00 PM & 12:00 AM AEST)
+                        Next update: Every hour
                     </p>
                 </div>
             </div>
