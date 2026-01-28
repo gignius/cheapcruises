@@ -75,26 +75,33 @@
         [x-cloak] { display: none !important; }
         
         /* Senior Mode Styles - Enhanced Accessibility */
+        /* Use zoom to scale everything up uniformly */
         body.senior-mode {
-            font-size: 120% !important;
-            line-height: 2.0 !important;
-            letter-spacing: 0.02em !important;
+            zoom: 1.25;
+            line-height: 1.8 !important;
+            letter-spacing: 0.01em !important;
         }
         
         /* Larger headings in Senior Mode */
-        body.senior-mode h1 { font-size: 3rem !important; line-height: 1.3 !important; }
-        body.senior-mode h2 { font-size: 2.25rem !important; line-height: 1.4 !important; }
-        body.senior-mode h3 { font-size: 1.875rem !important; line-height: 1.4 !important; }
-        body.senior-mode h4 { font-size: 1.5rem !important; line-height: 1.5 !important; }
+        body.senior-mode h1 { font-size: 3.5rem !important; line-height: 1.3 !important; }
+        body.senior-mode h2 { font-size: 2.75rem !important; line-height: 1.4 !important; }
+        body.senior-mode h3 { font-size: 2rem !important; line-height: 1.4 !important; }
+        body.senior-mode h4 { font-size: 1.75rem !important; line-height: 1.5 !important; }
         
-        /* Larger text elements */
-        body.senior-mode p, body.senior-mode span, body.senior-mode div, body.senior-mode a {
-            font-size: inherit !important;
-        }
+        /* Scale up Tailwind text utility classes */
+        body.senior-mode .text-xs { font-size: 0.875rem !important; }
+        body.senior-mode .text-sm { font-size: 1rem !important; }
+        body.senior-mode .text-base { font-size: 1.25rem !important; }
+        body.senior-mode .text-lg { font-size: 1.5rem !important; }
+        body.senior-mode .text-xl { font-size: 1.75rem !important; }
+        body.senior-mode .text-2xl { font-size: 2.25rem !important; }
+        body.senior-mode .text-3xl { font-size: 2.75rem !important; }
+        body.senior-mode .text-4xl { font-size: 3.25rem !important; }
+        body.senior-mode .text-5xl { font-size: 4rem !important; }
         
         /* Larger navigation links */
         body.senior-mode nav a {
-            font-size: 1.125rem !important;
+            font-size: 1.25rem !important;
             padding: 0.75rem 1rem !important;
         }
         
@@ -120,8 +127,8 @@
         
         /* Larger icons */
         body.senior-mode svg {
-            width: 1.75em !important;
-            height: 1.75em !important;
+            width: 1.5em !important;
+            height: 1.5em !important;
         }
         
         /* Better contrast */
@@ -130,66 +137,30 @@
             color: rgb(31 41 55 / var(--tw-text-opacity)) !important;
         }
         
-        /* Larger logo */
-        body.senior-mode .text-2xl {
-            font-size: 2.5rem !important;
-        }
-        
-        body.senior-mode .text-xl {
-            font-size: 1.875rem !important;
-        }
-        
-        /* Larger price displays */
-        body.senior-mode .text-3xl {
-            font-size: 3.5rem !important;
-        }
-        
-        body.senior-mode .text-2xl {
-            font-size: 2.5rem !important;
-        }
-        
-        body.senior-mode .text-lg {
-            font-size: 1.5rem !important;
-        }
-        
         /* Better spacing */
         body.senior-mode .space-y-4 > * + * {
-            margin-top: 2rem !important;
-        }
-        
-        body.senior-mode .space-y-6 > * + * {
-            margin-top: 2.5rem !important;
-        }
-        
-        body.senior-mode .space-y-2 > * + * {
-            margin-top: 1rem !important;
-        }
-        
-        body.senior-mode .space-y-3 > * + * {
             margin-top: 1.5rem !important;
         }
         
-        /* More spacing for paragraphs */
-        body.senior-mode p {
-            margin-bottom: 1.25rem !important;
+        body.senior-mode .space-y-6 > * + * {
+            margin-top: 2rem !important;
         }
         
-        /* More spacing for headings */
-        body.senior-mode h1, body.senior-mode h2, body.senior-mode h3 {
-            margin-top: 2rem !important;
-            margin-bottom: 1.5rem !important;
+        body.senior-mode .space-y-2 > * + * {
+            margin-top: 0.75rem !important;
+        }
+        
+        body.senior-mode .space-y-3 > * + * {
+            margin-top: 1rem !important;
         }
         
         /* Larger touch targets */
         body.senior-mode a, body.senior-mode button {
             min-height: 44px !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
         }
         
-        /* Better link visibility */
-        body.senior-mode a {
+        /* Better link visibility - only for content links, not nav */
+        body.senior-mode main a:not(.bg-cruise-600):not(.bg-cruise-100) {
             text-decoration: underline !important;
             text-decoration-thickness: 2px !important;
             text-underline-offset: 4px !important;
@@ -202,17 +173,6 @@
         /* Thicker borders */
         body.senior-mode .border {
             border-width: 2px !important;
-        }
-        
-        /* More padding for readability */
-        body.senior-mode .px-4 {
-            padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
-        }
-        
-        body.senior-mode .py-4 {
-            padding-top: 1.5rem !important;
-            padding-bottom: 1.5rem !important;
         }
     </style>
     
