@@ -239,7 +239,7 @@ Write the article now:"""
                 'meta_title': f"{topic} | CheapCruises.au",
                 'meta_description': meta_desc,
                 'keywords': keywords,
-                'author': 'Timothy Yang - Cruise Expert',
+                'author': 'Oliver Yang - Cruise Expert',
                 'category': category,
                 'tags': json.dumps(self._generate_tags(topic)),
                 'featured_image_url': featured_image_url,
