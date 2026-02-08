@@ -44,6 +44,16 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/cheap-cruises-from-sydney",
                 f"{self.BASE_URL}/cheap-cruises-from-brisbane",
                 
+                # US Ports (for worldwide cruises)
+                f"{self.BASE_URL}/departing/los-angeles/cruises",
+                f"{self.BASE_URL}/departing/san-francisco/cruises",
+                f"{self.BASE_URL}/departing/seattle/cruises",
+                f"{self.BASE_URL}/departing/miami/cruises",
+                f"{self.BASE_URL}/departing/fort-lauderdale/cruises",
+                f"{self.BASE_URL}/departing/new-york/cruises",
+                f"{self.BASE_URL}/departing/galveston/cruises",
+                f"{self.BASE_URL}/departing/honolulu/cruises",
+                
                 # Region-based URLs (new format)
                 f"{self.BASE_URL}/region/new-zealand/cruises",
                 f"{self.BASE_URL}/region/south-pacific/cruises",
