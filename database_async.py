@@ -230,6 +230,22 @@ class CruiseDealRepository:
             deal.is_active = False
         
         return len(deals)
+    
+    async def deactivate_past_cruises(self):
+        """Mark cruises with past departure dates as inactive"""
+        now = datetime.now()
+        
+        result = await self.session.execute(
+            select(CruiseDealDB)
+            .where(CruiseDealDB.departure_date < now)
+            .where(CruiseDealDB.is_active.is_(True))
+        )
+        deals = result.scalars().all()
+        
+        for deal in deals:
+            deal.is_active = False
+        
+        return len(deals)
 
 
 class PromoCodeRepository:
