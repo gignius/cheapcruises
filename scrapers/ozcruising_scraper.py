@@ -532,7 +532,7 @@ class OzCruisingScraper(BaseScraper):
         return False
     
     def _enrich_deals_with_images(self):
-        """Enrich deals by visiting detail pages to extract images and detailed info"""
+        """Enrich deals by visiting detail pages to extract images, prices, and detailed info"""
         import time
         import json
         
@@ -545,6 +545,18 @@ class OzCruisingScraper(BaseScraper):
                         image_url = self._extract_cruise_image(soup)
                         if image_url:
                             deal.image_url = image_url
+                    
+                    # Extract and UPDATE prices from detail page (more accurate than listing)
+                    updated_prices = self._extract_prices_from_detail(soup)
+                    if updated_prices:
+                        if updated_prices.get('price_2p'):
+                            deal.price_2p_interior = updated_prices['price_2p']
+                            # Update total_price_aud to match per-person price
+                            deal.total_price_aud = updated_prices['price_2p'] / 2
+                            if deal.duration_days > 0:
+                                deal.price_per_day = deal.total_price_aud / deal.duration_days
+                        if updated_prices.get('price_4p'):
+                            deal.price_4p_interior = updated_prices['price_4p']
                     
                     # Extract detailed information
                     itinerary = self._extract_itinerary(soup)
@@ -570,6 +582,49 @@ class OzCruisingScraper(BaseScraper):
             except Exception as e:
                 logger.warning(f"Failed to enrich deal {i+1}: {e}")
                 continue
+    
+    def _extract_prices_from_detail(self, soup) -> Optional[dict]:
+        """Extract accurate prices from the cruise detail page pricing table"""
+        try:
+            prices = {}
+            
+            # Look for the pricing table on the detail page
+            # OzCruising shows a table with Category, Cabin, Price (pp), Total Cabin Price
+            pricing_table = soup.find('table')
+            if not pricing_table:
+                return None
+            
+            rows = pricing_table.find_all('tr')
+            interior_price = None
+            
+            for row in rows:
+                cells = row.find_all(['td', 'th'])
+                if len(cells) >= 3:
+                    row_text = row.get_text(separator=' ', strip=True).lower()
+                    
+                    # Look for Interior Stateroom prices (IS category or Interior in name)
+                    if 'interior' in row_text or row_text.startswith('is ') or row_text.startswith('4'):
+                        # Extract per-person price from the Price (pp) column
+                        for cell in cells:
+                            cell_text = cell.get_text(strip=True)
+                            price_match = re.search(r'\$(\d{1,3}(?:,\d{3})*)', cell_text)
+                            if price_match:
+                                price = float(price_match.group(1).replace(',', ''))
+                                if interior_price is None or price < interior_price:
+                                    interior_price = price
+                                break
+            
+            if interior_price:
+                # Store as total cabin price for 2 people (price_pp * 2)
+                prices['price_2p'] = interior_price * 2
+                # Estimate 4-person price (usually slightly cheaper per person)
+                prices['price_4p'] = interior_price * 4
+            
+            return prices if prices else None
+            
+        except Exception as e:
+            logger.warning(f"Error extracting prices from detail page: {e}")
+            return None
     
     def _extract_cruise_image(self, soup) -> Optional[str]:
         """Extract the main cruise image from a detail page"""
