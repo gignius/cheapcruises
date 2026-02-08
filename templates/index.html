@@ -151,6 +151,10 @@
                                 <span class="text-gray-500">📅</span>
                                 <span x-text="deal.duration_days + ' nights'"></span>
                             </p>
+                            <p class="text-sm" x-show="deal.departure_date">
+                                <span class="text-gray-500">🗓️</span>
+                                <span x-text="deal.departure_date ? new Date(deal.departure_date).toLocaleDateString() : ''"></span>
+                            </p>
                         </div>
                         
                         <div class="border-t pt-4">
