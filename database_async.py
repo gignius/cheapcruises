@@ -57,7 +57,7 @@ class CruiseDealRepository:
         self.session = session
     
     async def find_existing(self, deal: CruiseDeal) -> Optional[CruiseDealDB]:
-        """Find if a similar deal already exists"""
+        """Find if a similar deal already exists (returns first match if duplicates exist)"""
         result = await self.session.execute(
             select(CruiseDealDB)
             .where(CruiseDealDB.cruise_line == deal.cruise_line)
@@ -67,8 +67,10 @@ class CruiseDealRepository:
             .where(CruiseDealDB.duration_days == deal.duration_days)
             .where(CruiseDealDB.departure_port == deal.departure_port)
             .where(CruiseDealDB.is_active.is_(True))
+            .order_by(CruiseDealDB.id.desc())
+            .limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
     
     async def create(self, deal: CruiseDeal) -> CruiseDealDB:
         """Create a new cruise deal or update existing"""
