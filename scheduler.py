@@ -54,11 +54,17 @@ async def run_cruise_scrapers():
                 await session.commit()
                 logger.info(f"Saved {saved_count}/{len(all_deals)} deals to database")
                 
-                # Deactivate old deals
+                # Deactivate old deals (not updated in 7 days)
                 deactivated = await repo.deactivate_old_deals(days=7)
                 if deactivated > 0:
                     await session.commit()
                     logger.info(f"Marked {deactivated} old deals as inactive")
+                
+                # Deactivate cruises with past departure dates
+                past_cruises = await repo.deactivate_past_cruises()
+                if past_cruises > 0:
+                    await session.commit()
+                    logger.info(f"Marked {past_cruises} past cruises as inactive")
         else:
             logger.warning("No deals found during scraper run")
         

@@ -143,7 +143,8 @@ class CruiseDealRepository:
         skip: int = 0
     ):
         """Get all deals with filters"""
-        query = select(CruiseDealDB).where(CruiseDealDB.is_active.is_(True))
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        query = select(CruiseDealDB).where(CruiseDealDB.is_active.is_(True)).where(CruiseDealDB.departure_date >= today)
         
         if min_price_per_day:
             query = query.where(CruiseDealDB.price_per_day >= min_price_per_day)
@@ -187,25 +188,32 @@ class CruiseDealRepository:
     
     async def count_by_price(self):
         """Get count of deals by price thresholds"""
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
         total = await self.session.scalar(
-            select(func.count()).select_from(CruiseDealDB).where(CruiseDealDB.is_active == True)
+            select(func.count()).select_from(CruiseDealDB)
+            .where(CruiseDealDB.is_active == True)
+            .where(CruiseDealDB.departure_date >= today)
         )
         
         under_100 = await self.session.scalar(
             select(func.count()).select_from(CruiseDealDB)
             .where(CruiseDealDB.is_active.is_(True))
+            .where(CruiseDealDB.departure_date >= today)
             .where(CruiseDealDB.price_per_day <= 100)
         )
         
         under_150 = await self.session.scalar(
             select(func.count()).select_from(CruiseDealDB)
             .where(CruiseDealDB.is_active.is_(True))
+            .where(CruiseDealDB.departure_date >= today)
             .where(CruiseDealDB.price_per_day <= 150)
         )
         
         under_200 = await self.session.scalar(
             select(func.count()).select_from(CruiseDealDB)
             .where(CruiseDealDB.is_active.is_(True))
+            .where(CruiseDealDB.departure_date >= today)
             .where(CruiseDealDB.price_per_day <= 200)
         )
         
@@ -224,6 +232,22 @@ class CruiseDealRepository:
         result = await self.session.execute(
             select(CruiseDealDB)
             .where(CruiseDealDB.last_updated < cutoff_date)
+            .where(CruiseDealDB.is_active.is_(True))
+        )
+        deals = result.scalars().all()
+        
+        for deal in deals:
+            deal.is_active = False
+        
+        return len(deals)
+    
+    async def deactivate_past_cruises(self):
+        """Mark cruises with past departure dates as inactive"""
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        result = await self.session.execute(
+            select(CruiseDealDB)
+            .where(CruiseDealDB.departure_date < today)
             .where(CruiseDealDB.is_active.is_(True))
         )
         deals = result.scalars().all()
