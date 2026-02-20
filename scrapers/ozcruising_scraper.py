@@ -67,7 +67,7 @@ class OzCruisingScraper(BaseScraper):
                 # Weekend & Short cruises
                 f"{self.BASE_URL}/weekend/cruises",
                 
-                # Cruise line brand pages (new format)
+                # Cruise line brand pages (new format) - Australia/NZ Departures (default)
                 f"{self.BASE_URL}/brand/royal-caribbean/cruises",
                 f"{self.BASE_URL}/brand/carnival-cruises/cruises",
                 f"{self.BASE_URL}/brand/princess-cruises/cruises",
@@ -80,15 +80,29 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/brand/azamara/cruises",
                 f"{self.BASE_URL}/brand/seabourn/cruises",
                 
+                # Cruise line brand pages - International Departures (US ports like Los Angeles, Miami, etc.)
+                f"{self.BASE_URL}/brand/royal-caribbean/cruises?tab=international",
+                f"{self.BASE_URL}/brand/carnival-cruises/cruises?tab=international",
+                f"{self.BASE_URL}/brand/princess-cruises/cruises?tab=international",
+                f"{self.BASE_URL}/brand/celebrity-cruises/cruises?tab=international",
+                f"{self.BASE_URL}/brand/ncl/cruises?tab=international",
+                f"{self.BASE_URL}/brand/cunard/cruises?tab=international",
+                f"{self.BASE_URL}/brand/holland-america/cruises?tab=international",
+                f"{self.BASE_URL}/brand/msc/cruises?tab=international",
+                f"{self.BASE_URL}/brand/viking/cruises?tab=international",
+                f"{self.BASE_URL}/brand/azamara/cruises?tab=international",
+                f"{self.BASE_URL}/brand/seabourn/cruises?tab=international",
+                
                 # Search URLs (still work)
                 f"{self.BASE_URL}/searchcruise/bysearchbar/0/-111/-111/-111/true/-111/-111/-111/-111",  # All cruises
             ]
             
             # Scrape all pages with pagination support
             # All OzCruising pages support pagination, so we scrape each with pagination
+            # Use max_pages=30 to capture more cruises (30 pages * 30 cruises = 900 max per source)
             for page_url in pages_to_scrape:
                 logger.debug(f"Scraping with pagination: {page_url}")
-                self._scrape_with_pagination(page_url, max_pages=10)
+                self._scrape_with_pagination(page_url, max_pages=30)
             
             logger.info(f"Enriching {len(self.deals)} deals with images from detail pages...")
             self._enrich_deals_with_images()
