@@ -86,9 +86,10 @@ class OzCruisingScraper(BaseScraper):
             
             # Scrape all pages with pagination support
             # All OzCruising pages support pagination, so we scrape each with pagination
+            # Use max_pages=30 to capture more cruises (30 pages * 30 cruises = 900 max per source)
             for page_url in pages_to_scrape:
                 logger.debug(f"Scraping with pagination: {page_url}")
-                self._scrape_with_pagination(page_url, max_pages=10)
+                self._scrape_with_pagination(page_url, max_pages=30)
             
             logger.info(f"Enriching {len(self.deals)} deals with images from detail pages...")
             self._enrich_deals_with_images()
