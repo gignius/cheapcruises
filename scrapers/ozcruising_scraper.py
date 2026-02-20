@@ -67,7 +67,7 @@ class OzCruisingScraper(BaseScraper):
                 # Weekend & Short cruises
                 f"{self.BASE_URL}/weekend/cruises",
                 
-                # Cruise line brand pages (new format)
+                # Cruise line brand pages (new format) - Australia/NZ Departures (default)
                 f"{self.BASE_URL}/brand/royal-caribbean/cruises",
                 f"{self.BASE_URL}/brand/carnival-cruises/cruises",
                 f"{self.BASE_URL}/brand/princess-cruises/cruises",
@@ -79,6 +79,19 @@ class OzCruisingScraper(BaseScraper):
                 f"{self.BASE_URL}/brand/viking/cruises",
                 f"{self.BASE_URL}/brand/azamara/cruises",
                 f"{self.BASE_URL}/brand/seabourn/cruises",
+                
+                # Cruise line brand pages - International Departures (US ports like Los Angeles, Miami, etc.)
+                f"{self.BASE_URL}/brand/royal-caribbean/cruises?tab=international",
+                f"{self.BASE_URL}/brand/carnival-cruises/cruises?tab=international",
+                f"{self.BASE_URL}/brand/princess-cruises/cruises?tab=international",
+                f"{self.BASE_URL}/brand/celebrity-cruises/cruises?tab=international",
+                f"{self.BASE_URL}/brand/ncl/cruises?tab=international",
+                f"{self.BASE_URL}/brand/cunard/cruises?tab=international",
+                f"{self.BASE_URL}/brand/holland-america/cruises?tab=international",
+                f"{self.BASE_URL}/brand/msc/cruises?tab=international",
+                f"{self.BASE_URL}/brand/viking/cruises?tab=international",
+                f"{self.BASE_URL}/brand/azamara/cruises?tab=international",
+                f"{self.BASE_URL}/brand/seabourn/cruises?tab=international",
                 
                 # Search URLs (still work)
                 f"{self.BASE_URL}/searchcruise/bysearchbar/0/-111/-111/-111/true/-111/-111/-111/-111",  # All cruises
